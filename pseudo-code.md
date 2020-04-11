@@ -66,7 +66,7 @@ POur tout u dans E:
     * P[detect appli] /!\ prendre en compte qu'il existe des transmissions de surfaces etc : out ce qui n'est pas par contact social /!\
     * P[faux positif appli]
             
-### Hypothèses
+### Hypothèses:
     * La plus grosse hypothèse est l'espérance du temps resté infecté, ici cela suite une loi géométrique alors que dans la vraie vie cela semble etre plus binomiale/ loi normale ...
     * Imunité après la guérison
         
