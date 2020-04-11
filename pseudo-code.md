@@ -42,7 +42,7 @@ Pour tout u dans V:
 POur tout u dans E:
     Si u vient de passer en quarantaine:
         CptQ[u] <- D[Q]
-        diviser tous les P[u,v], v dans V par RedQ
+        diviser tous les P(u,v), avec v dans V par RedQ
     Si CptQ[u] >0:
         CptQ[u] -= 1
         Si CptQ[u] == 0:
