@@ -1,6 +1,6 @@
 # Pseudo-code : modelisation de l'impact de d'adoption d'application de traçage social
 
-### Initialisaiton 
+### Initialisation 
 
 * Graphe social pondéré par des poids P(u,v) dans [0,1]
     * Organisation en communauté avec 3 niveau de proximité : foyer, communauté, éloigné
