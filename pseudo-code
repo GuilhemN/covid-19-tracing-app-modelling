@@ -1,0 +1,15 @@
+
+# Pseudo-code : modelisation de l'impact de d'adoption d'application de traçage social
+
+### Initialisaiton 
+
+* Graphe social pondéré par des poids P(u,v) dans [0,1]
+    * Organisaiton en communauté avec 3 niveau de proximité : foyer, communauté, éloigné
+* Proportion initiale de Guéri (G), Sain (S), Infecté avec symptomes (IS), Infectés assymptomatiques (A)
+* Proportion d'utilisateurs de l'appli (Uapp)
+
+### Itération
+
+Pour tout (u,v) ds E 
+    Avec proba P(u,v):
+        
