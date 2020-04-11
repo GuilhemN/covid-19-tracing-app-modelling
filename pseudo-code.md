@@ -1,6 +1,6 @@
 # Pseudo-code : modelisation de l'impact de d'adoption d'application de traçage social
 
-### Initialisaiton 
+### Initialisation 
 
 * Graphe social pondéré par des poids P(u,v) dans [0,1]
     * Organisation en communauté avec 3 niveau de proximité : foyer, communauté, éloigné
@@ -42,7 +42,7 @@ Pour tout u dans V:
 POur tout u dans E:
     Si u vient de passer en quarantaine:
         CptQ[u] <- D[Q]
-        diviser tous les P[u,v], v dans V par RedQ
+        diviser tous les P(u,v), avec v dans V par RedQ
     Si CptQ[u] >0:
         CptQ[u] -= 1
         Si CptQ[u] == 0:
@@ -66,7 +66,7 @@ POur tout u dans E:
     * P[detect appli] /!\ prendre en compte qu'il existe des transmissions de surfaces etc : out ce qui n'est pas par contact social /!\
     * P[faux positif appli]
             
-### Hypothèses
+### Hypothèses:
     * La plus grosse hypothèse est l'espérance du temps resté infecté, ici cela suite une loi géométrique alors que dans la vraie vie cela semble etre plus binomiale/ loi normale ...
     * Imunité après la guérison
         
