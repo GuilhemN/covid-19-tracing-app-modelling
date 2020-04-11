@@ -1,0 +1,62 @@
+# Pseudo-code : modelisation de l'impact de d'adoption d'application de traçage social
+
+### Initialisaiton 
+
+* Graphe social pondéré par des poids P(u,v) dans [0,1]
+    * Organisaiton en communauté avec 3 niveau de proximité : foyer, communauté, éloigné
+* Proportion initiale de Guéri (G), Sain (S), Infecté avec symptomes (IS), Infectés assymptomatiques (A)
+* Proportion d'utilisateurs de l'appli (Uapp)
+
+### Itération
+
+Pour tout (u,v) ds E 
+    Avec proba P(u,v):
+        Il y a contact entre u et v.
+        Si exactement un des deux est infecté, l'autre le devient avec une proba P[trans]
+        
+        Si Appli[u] et Appli[v], avec proba P[detect appli]:
+            ajouter le contact à l'historique H
+    Sinon:
+        Avec porba P[faux positif appli]:
+            ajouter le contact à H
+            
+Pour tout u dans V:
+    Si u est dans A:
+        Avec proba P[A->G]:
+            u va dans G
+        Avec proba P[A->IS]:
+            u va dans IS
+            Si u a l'appli:
+                Avec proba P[signalement symptomes]:
+                    Je préviens les contacts de H que j'ai eu dans les J derniers jours
+                    Les prévenus passent en quarantaine avec proba P[Q|notif]
+            Je passe en quarantaien avec proba P[Q|symptome]
+            
+    Si u est dans IS:
+        avec proba P[IS->G]:
+            je passe dans G
+        avec proba P[IS->M]:
+            je passe dans M (les morts)
+
+POur tout u dans E:
+    Si u vient de passer en quarantaine:
+        CptQ[u] <- D[Q]
+        diviser tous les P[u,v], v dans V par RedQ
+    Si CptQ[u] >0:
+        CptQ[u] -= 1
+        Si CptQ[u] == 0:
+            multiplier tous les P[u,v], v dans V par RedQ
+            
+### Paramètres:
+    * Topologie du graphe
+            
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
