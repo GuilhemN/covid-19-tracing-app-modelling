@@ -3,12 +3,13 @@
 ### Initialisaiton 
 
 * Graphe social pondéré par des poids P(u,v) dans [0,1]
-    * Organisaiton en communauté avec 3 niveau de proximité : foyer, communauté, éloigné
+    * Organisation en communauté avec 3 niveau de proximité : foyer, communauté, éloigné
 * Proportion initiale de Guéri (G), Sain (S), Infecté avec symptomes (IS), Infectés assymptomatiques (A)
 * Proportion d'utilisateurs de l'appli (Uapp)
 
 ### Itération
 
+```
 Pour tout (u,v) ds E 
     Avec proba P(u,v):
         Il y a contact entre u et v.
@@ -46,10 +47,28 @@ POur tout u dans E:
         CptQ[u] -= 1
         Si CptQ[u] == 0:
             multiplier tous les P[u,v], v dans V par RedQ
+```
             
 ### Paramètres:
     * Topologie du graphe
+    * Proportion initiale G, A, IS
+    * Uapp : utilisation de l'appli
+    * P[A->G]
+    * P[A->IS]
+    * P[Q|notif]
+    * P[Q|symptome]
+    * P[IS->M]
+    * P[IS->G]
+    * P[trans]
+    * D[Q]
+    * RedQ
+    * J =~ 14 jours
+    * P[detect appli] /!\ prendre en compte qu'il existe des transmissions de surfaces etc : out ce qui n'est pas par contact social /!\
+    * P[faux positif appli]
             
+### Hypothèses
+    * La plus grosse hypothèse est l'espérance du temps resté infecté, ici cela suite une loi géométrique alors que dans la vraie vie cela semble etre plus binomiale/ loi normale ...
+    * Imunité après la guérison
         
             
             
