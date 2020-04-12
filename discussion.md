@@ -26,6 +26,15 @@ For the second graph structure, we used a method from [3] and we build the netwo
 As for the epidemiological parameters of the desease, we adpated parameters from [4] to be suited for our model.
 Also, other models for the impact of social tracing app have been proposed such as in [5] and [4].
 
+### The model
+
+Each vertex of the graph is an individual that can be : Healthy, Infected with symptoms, Infected without symptoms, Dead or Recovered.
+At each step we go trough all the edges and with the probability given by this edges, there is contact beteween the individuals.
+If one of them is infected and the other healthy, it gives the infection to the other. With a propability of detection, the app notice this contact.
+
+After, if an individual infected get symtoms, he warn with a certain probability all the contact he had in the past 14 days. 
+All the warned individual quarantine for 14 days themselves with certain propability.
+
 
 ### Limits of the model
 
