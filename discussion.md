@@ -17,7 +17,7 @@ Play with them !
 ### Bibliography
 
 Contact network epidemiology is a paradigm to modelize an epidemic, it has been widely studied and it can account for discrepency of transmission beteween individuals.
-It has been discussed that this approach is suited to model epidemic as SARS Cov 1 in [1] https://www.researchgate.net/publication/228647710
+It has been discussed that this approach is suited to model epidemic as SARS Cov 1 in [1].
 That's why we chose this model.
 Moreover, the structure of the graph chosen has a great impact of the final size of the outbreat, as discussed in [2].
 We chose two model for the graph : a model using an exponential law for the degrees distribution. This seems suited for desease as SARS and urban areas [3]. 
@@ -33,7 +33,10 @@ Moreover, the parameters of the initial graph were detecrmined to get an average
 
 
 
-[1] https://www.researchgate.net/publication/228647710
+[1] Contact network epidemiology: Bond percolation applied to infectious disease prediction and control, Lauren Ancel Meyers 
+
 [2] Contact Network Epidemiology: MathematicalMethods of Modeling a Mutating Pathogen ona Two-type NetworkRobert by L. Seilheimer
+
 [3] Network theory and SARS: predicting outbreak diversity by Lauren Ancel Meyers &al.
+
 [4] Quantifying SARS-CoV-2 transmission suggests epidemic control with digital contact tracing.  - PubMed - NCBI
