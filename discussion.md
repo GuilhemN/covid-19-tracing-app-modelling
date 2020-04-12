@@ -11,7 +11,9 @@ suspected transmission notified by the app, will the citizen chose to directly q
 ### Motivation
 
 We are student as ENS de Lyon in computer science, so we aren't expert in the field of epidemiology. This model isn't supposed to give prediction for the future of the pandemic.
-However, it give a good intuition of the impact of social tracing app on the epidemic. Change the parameters yourself to convince you that this precise quarantining of suspected case can lead to great limitation of the spread.
+However, we develop this simple but clear model in 2 days (!) to get a rapid sense of what we could expect from social tracing app !
+It give a good intuition of the impact of social tracing app on the epidemic depending of the adoption of the app. 
+Change the parameters yourself to convince you that this precise quarantining of suspected case can lead to great limitation of the spread if it is well adopted by the population.
 Play with them !
 
 ### Bibliography
