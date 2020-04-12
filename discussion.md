@@ -8,9 +8,11 @@ Its primary goal is to shwo the influence of parameters such as the proportion o
 suspected transmission notified by the app, will the citizen chose to directly quarantine themself ?
 
 
-### Disclaimer 
+### Motivation
 
 We are student as ENS de Lyon in computer science, so we aren't expert in the field of epidemiology. This model isn't supposed to give prediction for the future of the pandemic.
+However, it give a good intuition of the impact of social tracing app on the epidemic. Change the parameters yourself to convince you that this precise quarantining of suspected case can lead to great limitation of the spread.
+Play with them !
 
 ### Bibliography
 
