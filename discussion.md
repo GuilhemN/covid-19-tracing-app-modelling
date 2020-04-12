@@ -18,7 +18,7 @@ Play with them !
 
 Contact network epidemiology is a paradigm to modelize an epidemic, it has been widely studied and it can account for discrepency of transmission beteween individuals.
 It has been discussed that this approach is suited to model epidemic as SARS Cov 1 in [1].
-That's why we chose this model.
+That's why we chose this approach.
 Moreover, the structure of the graph chosen has a great impact of the final size of the outbreat, as discussed in [2].
 We chose two model for the graph : a model using an exponential law for the degrees distribution. This seems suited for desease as SARS and urban areas [3]. 
 For the second graph structure, we used a method from [3] and we build the network by stages : first we build households, next the connection between them.
@@ -34,6 +34,8 @@ state "Infected" follows a geometric law as opposed to a law closer to lognormal
 Moreover, the parameters of the initial graph were detecrmined to get an average number of contact of around 30 / days without much support nor information found about this.
 
 With this fixed average contact per day,the average time infectious and R0 estimated by [4],  we computed the propability of transmistion during a contact.
+
+### Pseudocode of the model
 
 
 * [1] Contact network epidemiology: Bond percolation applied to infectious disease prediction and control, Lauren Ancel Meyers 
