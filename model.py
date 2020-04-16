@@ -329,7 +329,7 @@ def step(graph):
                 individual['state'] = SYMP
                 
                 # send the notifications (encounters[i] is empty if i hasn't the app | envoi des notifs (rencontres[i] vide si i n'a pas l'appli)
-                if random.random() < pReport && warningAfterSymptoms: # Faire avec présymptomatique
+                if random.random() < pReport and warningAfterSymptoms: # Faire avec présymptomatique
                     send_notification(graph,i)
 
                     
