@@ -189,7 +189,6 @@ def init_graph_household(graph):
 
 # # Updating the graph
 
-# %%
 def contamination(graph, i, j):
     if graph.individuals[i]['state'] == graph.individuals[j]['state']:
         return
@@ -288,10 +287,8 @@ def step(graph):
 # # Display
 # Interactive model below (it takes about 10-15 sec to appear and to run a simulation)
 
-# %%
 import matplotlib.pyplot as plt
 from matplotlib import style
-get_ipython().run_line_magic('matplotlib', 'notebook')
 
 fig = plt.figure(figsize=[10,8])
 ax = fig.add_subplot()
