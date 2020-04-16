@@ -148,7 +148,7 @@ def init_graph_exp(graph):
         else:
             graph.nbAS +=1
             
-        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app, "daysIncubation": 0, 'timeSinceInfection': -1, "timeLeftForTestResult": -1})
+        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app, "sentNotification": False, "daysIncubation": 0, 'timeSinceInfection': -1, "timeLeftForTestResult": -1})
 
     # affecting degrees to vertices
     degrees = np.around(np.random.exponential(deg_avg, nbIndividuals))
@@ -213,7 +213,7 @@ def init_graph_household(graph):
             graph.nbHealthy += 1
         else:
             graph.nbAS += 1
-        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app, "daysIncubation": 0, 'timeSinceInfection': -1, "timeLeftForTestResult": -1})
+        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app, "sentNotification": False, "daysIncubation": 0, 'timeSinceInfection': -1, "timeLeftForTestResult": -1})
         
     graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
 
@@ -246,10 +246,10 @@ def contamination(graph, i, j):
 
 def test_individual(individual):
     # if there is a test incoming, the person is not tested again
-    if individual['timeLeftForTestResult'] >= 0:
+    if individual['timeLeftForTestResult'] >= 0 || individual['state'] == DEAD:
         return
-    
-    if individual['state'] in [HEALTHY, DEAD, CURED]:
+        
+    if individual['state'] in [HEALTHY, CURED]:
         individual['lastTestResult'] = False # We assert there are no false positives
         return
     
@@ -264,10 +264,23 @@ def test_individual(individual):
 
 # Send notification to people who have been in touch with i | Envoie d'une notif aux personnes en contact avec i
 def send_notification(graph, i):
+    # Note: graphe.encounter[i] is empty if i does not have the app so there is no need to have an additional test
+    
+    if graph.individuals[i]['sentNotification']:
+        return # notifications already sent
+    
+    graph.individuals[i]['sentNotification'] = True
     for daysEncounter in graph.encounters[i]:
         for contact in daysEncounter:
-            if random.random() < pQNotif:
-                graph.individuals[contact]['daysQuarantine'] = daysQuarantine
+            if random.random() < pQNotif: # If the person takes the notification into account
+            
+                if QuarantineAfterNotification: # in this case, the person goes into quarantine and asks for a test
+                    if graph.individuals[contact]['daysQuarantine'] < 0: # not in quarantine yet
+                        graph.individuals[contact]['daysQuarantine'] = daysQuarantine
+                        
+                # In all cases the person is tested
+                test_individual(graph.individuals[contact]) # asks for a test
+
 
 # Step from a day to the next day | Passage au jour suivant du graphe
 def step(graph):    
@@ -277,8 +290,9 @@ def step(graph):
     # For each possible encounter | On constate toutes les rencontres entre individus
     for i in range(nbIndividuals):
         
-        # Some people send notif when they are not infected by covid | certaines personnes envoient une notif alors qu'elles n'ont pas le covid.
-        if random.random() < pSymptomsNotCovid:
+        # Some people send notif even though they are not actually infected by covid | certaines personnes envoient une notif alors qu'elles n'ont pas le covid.
+        # if not warningAfterSymptoms, each individual is tested before sending a notification so this issue is mitigated
+        if not warningAfterSymptoms and random.random() < pSymptomsNotCovid:
             send_notification(graph, i)
 
         graph.individuals['daysIncubation'] -= 1
@@ -323,6 +337,24 @@ def step(graph):
 
     # update the states | on met à jour les états des individus
     for i, individual in enumerate(graph.individuals):
+        
+        
+        ## TESTS MANAGEMENT
+        if timeLeftForTestResult == 0:
+            if individual['daysQuarantine'] > 0 and individual['lastTestResult'] == False: # is in quarantine and gets a negative test
+                individual['daysQuarantine'] = 0 # Ends of quarantine
+                
+            if individual['lastTestResult'] == True:
+                if individual['daysQuarantine'] <= 0:
+                    individual['daysQuarantine'] = daysQuarantine # Goes into quarantine if isn't already
+                
+                if random.random() < pReport: # Not everyone reports a positive test to the app
+                    send_notification(graph, i)
+            
+        individual['timeLeftForTestResult'] -= 1
+        
+        
+
         if individual['state'] == ASYMP:
             if random.random() < pAtoG:
                 graph.nbAS -= 1
