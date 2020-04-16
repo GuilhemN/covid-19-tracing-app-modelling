@@ -38,6 +38,11 @@ utilApp = 0.8 # percentage of people having the app | la proportion d'utilisateu
 pDetection = 0.9 # prob. that the app detects a contact | proba que l'appli détecte un contact
 pReport = 0.9 # prob. that a user reports his symptoms | proba qu'un utilisateur alerte de ses symptômes
 pQNotif = 0.8 # probablity of going into quarantine upon recieving a notification | proba de mise en confinement lors de la réception d'une notification
+pSymptomsNotCovid= 0.01 #Every day, everyone send a norification with proba PSymptomsNotCovid | tous les jours, tout le monde avec proba PSymptomsNotCovid envoye une notif à l'appli 
+
+warningAfterSymptoms=True #People warn the app immediately after having symptoms | on prévient l'application directement après avoir développé les symptomes 
+quarantineAfterNotification=True # If True, when notif I go to quarantine and ask a test (with some proba). If test positive, stay in quarantine and warn appli in the other case, I leave quarantine|Si True dès la reception d'une notif, avec la proba d'écouter l'appli je me confine, je demande un test. Si ce test est positif, je reste en quarantaine et je prévient l'appli. S'il est négatif, je sors de quarantaine.
+#If False, when notif, with proba to listen the app, I ask test. After the test, I warn app and go to quarantine or continue my life |Si False : à la réception d'une notif, avec la proba d'écouter l'appli , je demande un test. En fonction du résultat du test je me confine et je préviens l'appli ou je continue ma vie normale.
 
 #################
 # PROBABILITIES #
@@ -110,7 +115,7 @@ class Graph:
         self.nbCured = 0
         self.nbDead = 0
         self.nbQuarantine = 0
-        self.nbInfectedByAS = 0
+        self.nbInfectedByASPS = 0
 
 # # Graph generation
 
@@ -202,28 +207,25 @@ def init_graph_household(graph):
 def contamination(graph, i, j):
     if graph.individuals[i]['state'] == graph.individuals[j]['state']:
         return
-    if graph.individuals[i]['state'] >= CURED or graph.individuals[j]['state'] >= CURED:
-        return # cannot infect cured or dead individuals | on ne peut pas contaminer les individus guéris ou décédés
-    
+
     if graph.individuals[i]['state'] == HEALTHY:
         contamination(graph, j, i)
         return
-    
-    if graph.individuals[j]['state'] != HEALTHY or random.random() > pContamination:
-        return # no contamination
-    
-    if graph.individuals[i]['state'] == ASYMP:
-        graph.nbInfectedByAS += 1
 
-    graph.nbHealthy -= 1
-    if random.random() > pAsympt:
-        graph.individuals[j]['state'] = ASYMP
-        graph.nbAS += 1
-    else:
-        graph.individuals[j]['state'] = PRESYMP
-        graph.individuals[j]['daysIncubation'] = round(np.random.lognormal(incubMeanlog, incubSdlog))
-        graph.nbPS += 1
-
+    if graph.individuals[i]['state'] == PRESYMP or graph.individuals[i]['state'] == ASYMP or graph.individuals[i]['state'] == SYMP:
+        if graph.individuals[j]['state'] == HEALTHY:
+            if random.random() < pContamination:
+                if graph.individuals[i]['state'] == ASYMP or graph.individuals[i]['state'] == PRESYMP:
+                    graph.nbInfectedByASPS += 1
+                graph.individuals[j]['timeSinceLastInfection'] = 0
+                graph.nbHealthy -= 1
+                if random.random() > pAsympt:
+                    graph.individuals[j]['state'] = ASYMP
+                    graph.nbAS += 1
+                else:
+                    graph.individuals[j]['state'] = PRESYMP
+                    graph.individuals[j]['daysIncubation'] = round(np.random.lognormal(incubMeanlog, incubSdlog))
+                    graph.nbPS += 1
 
 # Step from a day to the next day | Passage au jour suivant du graphe
 def step(graph):    
@@ -326,7 +328,7 @@ def update_viz(graph):
     y_S.append(graph.nbHealthy)       # number of healthy people
     y_G.append(graph.nbCured)         # number of cured persons
     y_Q.append(graph.nbQuarantine)    # number of people in quarantine
-    y_InfectByAS.append(graph.nbInfectedByAS) # number of people infected by asymp. people
+    y_InfectByAS.append(graph.nbInfectedByASPS) # number of people infected by asymp. people
     
 def draw_viz():
     ax.cla()
