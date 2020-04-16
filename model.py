@@ -120,6 +120,7 @@ class Graph:
 
         self.nbS = 0
         self.nbAS = 0
+        self.nbPS = 0
         self.nbHealthy = 0
         self.nbDead = 0
         self.nbCured = 0
@@ -279,6 +280,22 @@ def send_notification(graph,i):
                 
 
 
+
+# def updateCounters(graph):
+#     self.nbS = 0
+#     self.nbAS = 0
+#     self.nbPS = 0
+#     self.nbHealthy = 0
+#     self.nbDead = 0
+#     self.nbCured = 0
+#     # now cumulative :
+#     self.nbQuarantineTotal = 0
+#     self.nbInfectedByAS = 0
+#     self.nbQuarantineNonD = 0
+#     self.nbQuarantineNonI = 0
+
+
+
 # Step from a day to the next day | Passage au jour suivant du graphe
 def step(graph):    
     for encounter in graph.encounters:
@@ -364,6 +381,8 @@ def step(graph):
     # deleting oldest recorded day | suppression du plus vieux jour de l'historique
     for encounter in graph.encounters:
         encounter.pop(0)
+        
+    #updateCounters(graph)
 
 # # Display
 # Interactive model below (it takes about 10-15 sec to appear and to run a simulation)
