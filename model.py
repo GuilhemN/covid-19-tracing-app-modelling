@@ -51,6 +51,11 @@ pContamination = 0.02 # probabilty of contaminating another individual upon cont
 pAsympt = 0.4 # probability of being asymptomatic when infected | proba qu'une personne infectée soit asymptomatique
 # according to [4]
 
+# parameters for the lognormal law of the incubation period | paramètres pour la loi lognormale de la période d'incubation
+incubMeanlog = 1.644 # -> ~5.5 days
+incubSdlog = 0.363 # -> ~2.1 days
+# according to [4]
+
 pAtoG = 0.12 # probability of going from asymptomatic state to cured | proba de passer de asymptomatique à guéri
 pAtoIS = 0.06 # probability of going from asymptomatic state to symptomatic state | passage de asymptomatique à avec symptômes
 # average time infectious without symptoms : 1/(0.06+0.12) = 5.5 days of incubation period plausible according to [4]
@@ -188,7 +193,7 @@ def init_graph_household(graph):
             graph.nbHealthy += 1
         else:
             graph.nbAS += 1
-        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app})
+        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app, "daysIncubation" = 0})
         
     graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
 
@@ -216,6 +221,7 @@ def contamination(graph, i, j):
         graph.nbAS += 1
     else:
         graph.individuals[j]['state'] = PRESYMP
+        graph.individuals[j]['daysIncubation'] = round(np.random.lognormal(incubMeanlog, incubSdlog))
         graph.nbPS += 1
 
 
@@ -315,7 +321,7 @@ y_InfectByAS = []
 def update_viz(graph):
     xs.append(len(xs))
     y_D.append(graph.nbDead)          # number of deceased people
-    y_MS.append(graph.nbS)            # number of symptomatic people 
+    y_MS.append(graph.nbS)            # number of symptomatic people
     y_MAS.append(graph.nbAS)          # number of asymptomatic people
     y_S.append(graph.nbHealthy)       # number of healthy people
     y_G.append(graph.nbCured)         # number of cured persons
@@ -379,4 +385,3 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
 update_prob(utilApp, pReport, pQNotif)
 
 interact_manual(update_prob, app_utilisation = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = utilApp), report_to_app = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pReport), quarantine_when_notif = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pQNotif))
-
