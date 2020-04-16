@@ -280,7 +280,9 @@ def step(graph):
         # Some people send notif when they are not infected by covid | certaines personnes envoient une notif alors qu'elles n'ont pas le covid.
         if random.random() < pSymptomsNotCovid:
             send_notification(graph, i)
-               
+
+        graph.individuals['daysIncubation'] -= 1
+        
         for edge in graph.adj[i]:
             j = edge['node']
             if j < i:
@@ -322,13 +324,13 @@ def step(graph):
     # update the states | on met à jour les états des individus
     for i, individual in enumerate(graph.individuals):
         if individual['state'] == ASYMP:
-            action = random.random()
-            if action < pAtoG:
+            if random.random() < pAtoG:
                 graph.nbAS -= 1
                 graph.nbCured += 1
                 individual['state'] = CURED
-            elif action > 1 - pAtoIS:
-                graph.nbAS -= 1
+        if individual['state'] == PRESYMP:
+            if individual['daysIncubation'] == 0:
+                graph.nbPS -= 1
                 graph.nbS += 1
                 individual['state'] = SYMP
                 
