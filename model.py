@@ -253,6 +253,11 @@ def step(graph):
 
     # For each possible encounter | On constate toutes les rencontres entre individus
     for i in range(nbIndividuals):
+        
+        # Some people send notif when they are not infected by covid| certaines personnes envoient une notif alors qu'elles n'ont pas le covid.
+        if random.random()<pSymptomsNotCovid:
+            send_notification(graph, i)
+               
         for edge in graph.adj[i]:
             j = edge['node']
             if j < i:
@@ -296,8 +301,7 @@ def step(graph):
                 individual['state'] = SYMP
                 
                 # send the notifications (encounters[i] is empty if i hasn't the app | envoi des notifs (rencontres[i] vide si i n'a pas l'appli)
-                if random.random() < pReport:
-
+                if random.random() < pReport && warningAfterSymptoms: # Faire avec présymptomatique
                     send_notification(graph,i)
 
                     
