@@ -132,7 +132,7 @@ def init_graph_exp(graph):
             graph.nbHealthy +=1
         else:
             graph.nbAS +=1
-        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app})
+        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app, 'timeSinceInfection': -1})
 
     # affecting degrees to vertices
     degrees = np.around(np.random.exponential(deg_avg, nbIndividuals))
@@ -197,7 +197,7 @@ def init_graph_household(graph):
             graph.nbHealthy += 1
         else:
             graph.nbAS += 1
-        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app})
+        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app, 'timeSinceInfection': -1})
         
     graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
 
@@ -220,11 +220,11 @@ def contamination(graph, i, j):
             if random.random() < pContamination:
 
                 
-                if graph.individuals[i]['state'] == ASYMP || graph.individuals[i]['state'] == PRESYMP:
+                if graph.individuals[i]['state'] == ASYMP or graph.individuals[i]['state'] == PRESYMP:
                     graph.nbInfectedByAS += 1
             
                 graph.nbHealthy -= 1
-                graph.individuals[j]['timeSinceLastInfection'] = 0
+                graph.individuals[j]['timeSinceInfection'] = 0
                 
                 if random.random() < pAsympt: #####TO verify
                     graph.individuals[j]['state'] = ASYMP
@@ -281,6 +281,9 @@ def step(graph):
         graph.individuals[i]['daysQuarantine'] -= 1
         if graph.individuals[i]['daysQuarantine'] > 0:
             graph.nbQuarantine += 1
+
+        if graph.individuals[i]['timeSinceInfection'] >=0:
+            graph.individuals[i]['timeSinceInfection'] += 1
 
     # update the states | on met à jour les états des individus
     for i, individual in enumerate(graph.individuals):
