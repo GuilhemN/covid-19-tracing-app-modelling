@@ -135,7 +135,8 @@ def init_graph_exp(graph):
             graph.nbHealthy +=1
         else:
             graph.nbAS +=1
-        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app, 'timeSinceInfection': -1})
+            
+        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app, "timeLeftForTestResult": -1, "timeSinceInfection": -1})
 
     # affecting degrees to vertices
     degrees = np.around(np.random.exponential(deg_avg, nbIndividuals))
@@ -200,7 +201,7 @@ def init_graph_household(graph):
             graph.nbHealthy += 1
         else:
             graph.nbAS += 1
-        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app, 'timeSinceInfection': -1})
+        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app, "timeLeftForTestResult": -1, 'timeSinceInfection': -1})
         
     graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
 
@@ -236,6 +237,20 @@ def contamination(graph, i, j):
                     graph.individuals[j]['state'] = PRESYMP
                     #####new comptor to add : nbPS
 
+
+def test_individual(individual):
+    # if there is a test incoming, the person is not tested again
+    if individual['timeLeftForTestResult'] >= 0:
+        return
+    
+    individual['timeLeftForTestResult'] = daysUntilResult
+    if individual['state'] in [HEALTHY, DEAD, CURED]:
+        individual['lastTestResult'] = False # We assert there are no false positives
+        return
+    
+    # Otherwise the person is ill
+    # The test result depends whether we have a false negative
+    individual['lastTestResult'] = not random.random() < pFalseNegative
 
 
 # Send notification to people who have been in touch with i | Envoie d'une notif aux personnes en contact avec i
