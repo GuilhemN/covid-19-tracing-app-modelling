@@ -94,9 +94,10 @@ import ipywidgets as widgets
 
 HEALTHY = 0
 ASYMP = 1
-SYMP = 2
-CURED = 3
-DEAD = 4
+PRESYMP = 2
+SYMP = 3
+CURED = 4
+DEAD = 5
 
 
 class Graph:
