@@ -39,6 +39,8 @@ pDetection = 0.9 # prob. that the app detects a contact | proba que l'appli dét
 pReport = 0.9 # prob. that a user reports his symptoms | proba qu'un utilisateur alerte de ses symptômes
 pQNotif = 0.8 # probablity of going into quarantine upon recieving a notification | proba de mise en confinement lors de la réception d'une notification
 
+WarningAfterSymptoms=True
+QuarantineAfterNotification=True
 #################
 # PROBABILITIES #
 #################
@@ -62,8 +64,17 @@ pIStoD = 0.003 # probability of dying when symptomatic | proba de décès d'une 
 
 pQSymptoms = 0.9 # probability of going into quarantine when one has symptoms | proba de confinement lors de détection des symptômes
 
-quarantineFactor = 100 # reduction factor applied to the probabilities when one is in quarantine | réduction des probas de rencontre lors du confinement
+quarantineFactor = 7 # reduction factor applied to the probabilities when one is in quarantine | réduction des probas de rencontre lors du confinement
+#https://www.sciencedirect.com/science/article/pii/S2468042720300087 
+# The amount of people is divided by 40 after quarantine in Hubei. We use quarantineFactor for each person
+# but not for each encounter therefore quarantineFactor is 49 for a encounter between 2 quarantined people.
+
+
 daysQuarantine = 14 # duration of the quarantine | durée de la quarantaine
+
+
+QuarantineAfterNotification  = False
+
 
 # # Libs and defs
 
@@ -189,25 +200,44 @@ def init_graph_household(graph):
 
 # # Updating the graph
 
+##new contamination function
 def contamination(graph, i, j):
-    if graph.individuals[i]['state'] == graph.individuals[j]['state']:
-        return
-    if graph.individuals[i]['state'] >= CURED or graph.individuals[j]['state'] >= CURED:
-        return # cannot infect cured or dead individuals | on ne peut pas contaminer les individus guéris ou décédés
-    
+
     if graph.individuals[i]['state'] == HEALTHY:
         contamination(graph, j, i)
         return
+    #i is the infected
     
-    if graph.individuals[j]['state'] != HEALTHY or random.random() > pContamination:
-        return # no contamination
-    
-    if graph.individuals[i]['state'] == ASYMP:
-        graph.nbInfectedByAS += 1
+    if graph.individuals[i]['state'] == PRESYMP || graph.individuals[i]['state'] == ASYMP || graph.individuals[i]['state'] == SYMP:
+        if graph.individuals[j]['state'] == HEALTHY:
+            
+            if random.random() < pContamination:
 
-    graph.nbHealthy -= 1
-    graph.nbAS += 1
-    graph.individuals[j]['state'] = ASYMP
+                
+                if graph.individuals[i]['state'] == ASYMP || graph.individuals[i]['state'] == PRESYMP:
+                    graph.nbInfectedByAS += 1
+            
+                graph.nbHealthy -= 1
+                graph.individuals[j]['TimeSinceLastInfection'] = 0
+                
+                if random.random() < pAsympt: #####TO verify
+                    graph.individuals[j]['state'] = ASYMP
+                    graph.nbAS += 1
+                else:
+                    graph.individuals[j]['state'] = PRESYMP
+                    #####new comptor to add : nbPS
+
+
+
+# Send notification to people who have been in touch with i | Envoie d'une notif aux personnes en contact avec i
+
+
+def send_notification(graph,i):
+    for daysEncounter in graph.encounters[i]:
+        for contact in daysEncounter:
+            if random.random() < pQNotif:
+                graph.individuals[contact]['daysQuarantine'] = daysQuarantine
+                
 
 
 # Step from a day to the next day | Passage au jour suivant du graphe
@@ -261,13 +291,12 @@ def step(graph):
                 
                 # send the notifications (encounters[i] is empty if i hasn't the app | envoi des notifs (rencontres[i] vide si i n'a pas l'appli)
                 if random.random() < pReport:
-                    for daysEncounter in graph.encounters[i]:
-                        for contact in daysEncounter:
-                            if random.random() < pQNotif:
-                                graph.individuals[contact]['daysQuarantine'] = daysQuarantine
+
+                    send_notification(graph,i)
+
                     
-                    if random.random() < pQSymptoms: # go into quarantine if symptoms appear | mise en confinement à la détection des symptomes
-                        individual['daysQuarantine'] = daysQuarantine
+                if random.random() < pQSymptoms: # go into quarantine if symptoms appear | mise en confinement à la détection des symptomes
+                    individual['daysQuarantine'] = daysQuarantine
                 
         elif individual['state'] == SYMP:
             action = random.random()
@@ -329,6 +358,7 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     global utilApp
     global pReport
     global pQNotif
+    
     global xs
     global y_D
     global y_MS
@@ -341,6 +371,7 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     utilApp = app_utilisation
     pReport = report_to_app
     pQNotif = quarantine_when_notif
+    
     nbSteps = 180
     
     nbIndividuals = 1000 # you may change the number of individuals for the exponential distribution graph here
