@@ -206,6 +206,9 @@ def init_graph_household(graph):
 ##new contamination function
 def contamination(graph, i, j):
 
+    if graph.individuals[i]['state'] == graph.individuals[j]['state']:
+        return
+
     if graph.individuals[i]['state'] == HEALTHY:
         contamination(graph, j, i)
         return
@@ -221,7 +224,7 @@ def contamination(graph, i, j):
                     graph.nbInfectedByAS += 1
             
                 graph.nbHealthy -= 1
-                graph.individuals[j]['TimeSinceLastInfection'] = 0
+                graph.individuals[j]['timeSinceLastInfection'] = 0
                 
                 if random.random() < pAsympt: #####TO verify
                     graph.individuals[j]['state'] = ASYMP
