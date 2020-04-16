@@ -65,6 +65,10 @@ pQSymptoms = 0.9 # probability of going into quarantine when one has symptoms | 
 quarantineFactor = 100 # reduction factor applied to the probabilities when one is in quarantine | réduction des probas de rencontre lors du confinement
 daysQuarantine = 14 # duration of the quarantine | durée de la quarantaine
 
+
+QuarantineAfterNotification  = False
+
+
 # # Libs and defs
 
 # Librairies
@@ -189,25 +193,30 @@ def init_graph_household(graph):
 
 # # Updating the graph
 
-def contamination(graph, i, j):
-    if graph.individuals[i]['state'] == graph.individuals[j]['state']:
-        return
-    if graph.individuals[i]['state'] >= CURED or graph.individuals[j]['state'] >= CURED:
-        return # cannot infect cured or dead individuals | on ne peut pas contaminer les individus guéris ou décédés
-    
-    if graph.individuals[i]['state'] == HEALTHY:
-        contamination(graph, j, i)
-        return
-    
-    if graph.individuals[j]['state'] != HEALTHY or random.random() > pContamination:
-        return # no contamination
-    
-    if graph.individuals[i]['state'] == ASYMP:
-        graph.nbInfectedByAS += 1
-
-    graph.nbHealthy -= 1
-    graph.nbAS += 1
-    graph.individuals[j]['state'] = ASYMP
+# def contamination(graph, i, j):
+# 
+#     if graph.individuals[i]['state'] == HEALTHY:
+#         contamination(graph, j, i)
+#         return
+#     
+#     
+#     if graph.individuals[i]['state'] == PRESYMP || graph.individuals[i]['state'] == ASYMP || graph.individuals[i]['state'] == SYMP:
+#         if graph.individuals[j]['state'] == HEALTHY:
+#             
+#             if random.random() < pContamination:
+# 
+#     
+#                 if graph.individuals[i]['state'] == ASYMP || graph.individuals[i]['state'] == PRESYMP:
+#                     graph.nbInfectedByAS += 1
+#             
+#                 graph.nbHealthy -= 1
+#                 
+#                 
+#                 if random.random() < PAssymp: #####TO verify
+#                     graph.individuals[j]['state'] = ASYMP
+#                     graph.nbAS += 1
+#                 else:
+#                     graph.individuals[j]['state'] = PRESYMP
 
 
 # Step from a day to the next day | Passage au jour suivant du graphe
@@ -264,6 +273,7 @@ def step(graph):
                     for daysEncounter in graph.encounters[i]:
                         for contact in daysEncounter:
                             if random.random() < pQNotif:
+                            
                                 graph.individuals[contact]['daysQuarantine'] = daysQuarantine
                     
                     if random.random() < pQSymptoms: # go into quarantine if symptoms appear | mise en confinement à la détection des symptomes
