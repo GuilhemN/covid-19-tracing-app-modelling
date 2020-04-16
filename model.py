@@ -218,7 +218,7 @@ def contamination(graph, i, j):
         return
     #i is the infected
     
-    if graph.individuals[i]['state'] == PRESYMP or graph.individuals[i]['state'] == ASYMP or graph.individuals[i]['state'] == SYMP:
+    if graph.individuals[i]['state'] in [PRESYMP, ASYMP, SYMP]:
         if graph.individuals[j]['state'] == HEALTHY:
             
             if random.random() < pContamination:
