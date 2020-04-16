@@ -113,8 +113,11 @@ class Graph:
         self.nbHealthy = 0
         self.nbDead = 0
         self.nbCured = 0
-        self.nbQuarantine = 0
+        # now cumulative :
+        self.nbQuarantineTotal = 0
         self.nbInfectedByAS = 0
+        self.nbQuarantineNonD = 0
+        self.nbQuarantineNonI = 0
 
 # # Graph generation
 
@@ -280,7 +283,13 @@ def step(graph):
     for i in range(nbIndividuals):
         graph.individuals[i]['daysQuarantine'] -= 1
         if graph.individuals[i]['daysQuarantine'] > 0:
-            graph.nbQuarantine += 1
+            graph.nbQuarantineTotal += 1/nbIndividuals
+            state = graph.individuals[i]['state']
+            if state != DEAD:
+                graph.nbQuarantineNonD += 1
+            # update if pre-symp is added
+            if state != ASYMP and state != SYMP and state != PRESYMP:
+                graph.nbQuarantineNonI += 1
 
         if graph.individuals[i]['timeSinceInfection'] >=0:
             graph.individuals[i]['timeSinceInfection'] += 1
@@ -328,10 +337,7 @@ def step(graph):
 import matplotlib.pyplot as plt
 from matplotlib import style
 
-fig = plt.figure(figsize=[10,8])
-ax = fig.add_subplot()
-ax2 = fig.add_subplot()
-ax3 = fig.add_subplot()
+fig, (ax, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=[10,10])
 xs = []
 y_D = []
 y_MS = []
@@ -340,34 +346,46 @@ y_S = []
 y_G = []
 y_Q = []
 y_InfectByAS = []
+y_QuarantineNonI = []
+y_QuarantineNonD = []
+
+ax.set_ylim([0, nbIndividuals])
 
 def update_viz(graph):
     xs.append(len(xs))
-    y_D.append(graph.nbDead)          # number of deceased people
-    y_MS.append(graph.nbS)            # number of symptomatic people 
-    y_MAS.append(graph.nbAS)          # number of asymptomatic people
-    y_S.append(graph.nbHealthy)       # number of healthy people
-    y_G.append(graph.nbCured)         # number of cured persons
-    y_Q.append(graph.nbQuarantine)    # number of people in quarantine
-    y_InfectByAS.append(graph.nbInfectedByAS) # number of people infected by asymp. people
+    y_D.append(graph.nbDead)                   # number of deceased people
+    y_MS.append(graph.nbS)                     # number of symptomatic people 
+    y_MAS.append(graph.nbAS)                   # number of asymptomatic people
+    y_S.append(graph.nbHealthy)                # number of healthy people
+    y_G.append(graph.nbCured)                  # number of cured persons
+    y_Q.append(graph.nbQuarantineTotal)        # number of people in quarantine
+    y_InfectByAS.append(graph.nbInfectedByAS)  # number of people infected by asymp. people
+    y_QuarantineNonI.append(graph.nbQuarantineNonI)
+    y_QuarantineNonD.append(graph.nbQuarantineNonD)
+    y_Quarantine.append(graph.nbQuarantine)
     
 def draw_viz():
     ax.cla()
     labels = ["Deceased", "Asymptomatic", "Symptomatic", "Cured", "Healthy"]
     ax.stackplot(xs, y_D, y_MAS, y_MS, y_G, y_S , labels=labels, edgecolor="black", colors=["darkred", "orange", "red", "dodgerblue", "mediumseagreen"])
     line, = ax2.plot(xs, y_Q)
-    line.set_label("Confined/Quarantined")
+    line.set_label("Total number of days of quarantine per person")
     line, = ax3.plot(xs, y_InfectByAS)
     line.set_label("Total infections by asympt.")
-
+    line, = ax4.plot(xs, y_QuarantineNonI)
+    line.set_label("In quarantine and non infected")
+    line, = ax4.plot(xs, y_QuarantineNonD)
+    line.set_label("In quarantine")
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),shadow=True, ncol=3)
+    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),shadow=True, ncol=1)
+    ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),shadow=True, ncol=1)
+    ax4.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),shadow=True, ncol=2)
     plt.tight_layout()
 
 def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     global utilApp
     global pReport
     global pQNotif
-    
     global xs
     global y_D
     global y_MS
@@ -376,11 +394,12 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     global y_G
     global y_Q
     global y_InfectByAS
+    global y_QuarantineNonD
+    global y_QuarantineNonI
     
     utilApp = app_utilisation
     pReport = report_to_app
     pQNotif = quarantine_when_notif
-    
     nbSteps = 180
     
     nbIndividuals = 1000 # you may change the number of individuals for the exponential distribution graph here
@@ -398,6 +417,8 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     y_G = []
     y_Q = []
     y_InfectByAS = []
+    y_QuarantineNonI = []
+    y_QuarantineNonD = []
     
     for _ in range(nbSteps):
         # update simulation
@@ -409,5 +430,6 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
 
 update_prob(utilApp, pReport, pQNotif)
 
-interact_manual(update_prob, app_utilisation = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = utilApp),                     report_to_app = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pReport),                     quarantine_when_notif = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pQNotif))
-
+interact_manual(update_prob, app_utilisation = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = utilApp), \
+                    report_to_app = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pReport), \
+                    quarantine_when_notif = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pQNotif))
