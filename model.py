@@ -246,7 +246,7 @@ def contamination(graph, i, j):
 
 def test_individual(individual):
     # if there is a test incoming, the person is not tested again
-    if individual['timeLeftForTestResult'] >= 0 || individual['state'] == DEAD:
+    if individual['timeLeftForTestResult'] >= 0 or individual['state'] == DEAD:
         return
         
     if individual['state'] in [HEALTHY, CURED]:
@@ -274,7 +274,7 @@ def send_notification(graph, i):
         for contact in daysEncounter:
             if random.random() < pQNotif: # If the person takes the notification into account
             
-                if QuarantineAfterNotification: # in this case, the person goes into quarantine and asks for a test
+                if quarantineAfterNotification: # in this case, the person goes into quarantine and asks for a test
                     if graph.individuals[contact]['daysQuarantine'] < 0: # not in quarantine yet
                         graph.individuals[contact]['daysQuarantine'] = daysQuarantine
                         
@@ -295,7 +295,7 @@ def step(graph):
         if not warningAfterSymptoms and random.random() < pSymptomsNotCovid:
             send_notification(graph, i)
 
-        graph.individuals['daysIncubation'] -= 1
+        graph.individuals[i]['daysIncubation'] -= 1
         
         for edge in graph.adj[i]:
             j = edge['node']
@@ -340,7 +340,7 @@ def step(graph):
         
         
         ## TESTS MANAGEMENT
-        if timeLeftForTestResult == 0:
+        if individual['timeLeftForTestResult'] == 0:
             if individual['daysQuarantine'] > 0 and individual['lastTestResult'] == False: # is in quarantine and gets a negative test
                 individual['daysQuarantine'] = 0 # Ends of quarantine
                 
@@ -361,16 +361,18 @@ def step(graph):
                 graph.nbCured += 1
                 individual['state'] = CURED
         if individual['state'] == PRESYMP:
-            if individual['daysIncubation'] == 0:
+            if individual['daysIncubation'] == 0: # The person developps symptoms
                 graph.nbPS -= 1
                 graph.nbS += 1
                 individual['state'] = SYMP
                 
                 # send the notifications (encounters[i] is empty if i doesn't have the app | envoi des notifs (rencontres[i] vide si i n'a pas l'appli)
-                if random.random() < pReport && warningAfterSymptoms: # Faire avec présymptomatique
+                if random.random() < pReport and warningAfterSymptoms: # Faire avec présymptomatique
                     send_notification(graph,i)
-                    if random.random() < pQSymptoms: # go into quarantine if symptoms appear | mise en confinement à la détection des symptomes
-                        individual['daysQuarantine'] = daysQuarantine
+                if random.random() < pQSymptoms: # go into quarantine if symptoms appear | mise en confinement à la détection des symptomes
+                    individual['daysQuarantine'] = daysQuarantine
+                    
+                test_individual(individual)
                 
         elif individual['state'] == SYMP:
             action = random.random()
@@ -404,6 +406,7 @@ y_Q = []
 y_InfectByAS = []
 y_QuarantineNonI = []
 y_QuarantineNonD = []
+y_Quarantine = []
 
 ax.set_ylim([0, nbIndividuals])
 
