@@ -233,6 +233,13 @@ def contamination(graph, i, j):
                     graph.individuals[j]['daysIncubation'] = round(np.random.lognormal(incubMeanlog, incubSdlog))
                     graph.nbPS += 1
 
+# Send notification to people who have been in touch with i | Envoie d'une notif aux personnes en contact avec i
+def send_notification(graph, i):
+    for daysEncounter in graph.encounters[i]:
+        for contact in daysEncounter:
+            if random.random() < pQNotif:
+                graph.individuals[contact]['daysQuarantine'] = daysQuarantine
+
 # Step from a day to the next day | Passage au jour suivant du graphe
 def step(graph):    
     for encounter in graph.encounters:
@@ -240,6 +247,11 @@ def step(graph):
 
     # For each possible encounter | On constate toutes les rencontres entre individus
     for i in range(nbIndividuals):
+        
+        # Some people send notif when they are not infected by covid | certaines personnes envoient une notif alors qu'elles n'ont pas le covid.
+        if random.random() < pSymptomsNotCovid:
+            send_notification(graph, i)
+               
         for edge in graph.adj[i]:
             j = edge['node']
             if j < i:
@@ -252,7 +264,7 @@ def step(graph):
                 factor *= quarantineFactor
             
             # if i or j are in quarantine, reduce the probability that they meet | Si i et/ou j sont confinés, réduction de leur proba de rencontre
-            if random.random() > edge['proba'] / factor: 
+            if random.random() > edge['proba'] / factor:
                 continue # no encounter | pas de rencontre
         
             # if i and j have the app, we save their encounter | Si i et j ont l'appli, on note la rencontre
@@ -275,7 +287,7 @@ def step(graph):
             if state != ASYMP and state != SYMP and state != PRESYMP:
                 graph.nbQuarantineNonI += 1
 
-        if graph.individuals[i]['timeSinceInfection'] >=0:
+        if graph.individuals[i]['timeSinceInfection'] >= 0:
             graph.individuals[i]['timeSinceInfection'] += 1
 
     # update the states | on met à jour les états des individus
@@ -291,13 +303,9 @@ def step(graph):
                 graph.nbS += 1
                 individual['state'] = SYMP
                 
-                # send the notifications (encounters[i] is empty if i hasn't the app | envoi des notifs (rencontres[i] vide si i n'a pas l'appli)
-                if random.random() < pReport:
-                    for daysEncounter in graph.encounters[i]:
-                        for contact in daysEncounter:
-                            if random.random() < pQNotif:
-                                graph.individuals[contact]['daysQuarantine'] = daysQuarantine
-                    
+                # send the notifications (encounters[i] is empty if i doesn't have the app | envoi des notifs (rencontres[i] vide si i n'a pas l'appli)
+                if random.random() < pReport && warningAfterSymptoms: # Faire avec présymptomatique
+                    send_notification(graph,i)
                     if random.random() < pQSymptoms: # go into quarantine if symptoms appear | mise en confinement à la détection des symptomes
                         individual['daysQuarantine'] = daysQuarantine
                 
