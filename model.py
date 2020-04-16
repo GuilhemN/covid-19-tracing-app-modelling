@@ -38,9 +38,12 @@ utilApp = 0.8 # percentage of people having the app | la proportion d'utilisateu
 pDetection = 0.9 # prob. that the app detects a contact | proba que l'appli détecte un contact
 pReport = 0.9 # prob. that a user reports his symptoms | proba qu'un utilisateur alerte de ses symptômes
 pQNotif = 0.8 # probablity of going into quarantine upon recieving a notification | proba de mise en confinement lors de la réception d'une notification
+pSymptomsNotCovid= 0.01 #Every day, everyone send a norification with proba PSymptomsNotCovid | tous les jours, tout le monde avec proba PSymptomsNotCovid envoye une notif à l'appli 
 
-WarningAfterSymptoms=True
-QuarantineAfterNotification=True
+warningAfterSymptoms=True #People warn the app immediately after having symptoms | on prévient l'application directement après avoir développé les symptomes 
+quarantineAfterNotification=True # If True, when notif I go to quarantine and ask a test (with some proba). If test positive, stay in quarantine and warn appli in the other case, I leave quarantine|Si True dès la reception d'une notif, avec la proba d'écouter l'appli je me confine, je demande un test. Si ce test est positif, je reste en quarantaine et je prévient l'appli. S'il est négatif, je sors de quarantaine.
+#If False, when notif, with proba to listen the app, I ask test. After the test, I warn app and go to quarantine or continue my life |Si False : à la réception d'une notif, avec la proba d'écouter l'appli , je demande un test. En fonction du résultat du test je me confine et je préviens l'appli ou je continue ma vie normale.
+
 #################
 # PROBABILITIES #
 #################
@@ -203,6 +206,9 @@ def init_graph_household(graph):
 ##new contamination function
 def contamination(graph, i, j):
 
+    if graph.individuals[i]['state'] == graph.individuals[j]['state']:
+        return
+
     if graph.individuals[i]['state'] == HEALTHY:
         contamination(graph, j, i)
         return
@@ -218,7 +224,7 @@ def contamination(graph, i, j):
                     graph.nbInfectedByAS += 1
             
                 graph.nbHealthy -= 1
-                graph.individuals[j]['TimeSinceLastInfection'] = 0
+                graph.individuals[j]['timeSinceLastInfection'] = 0
                 
                 if random.random() < pAsympt: #####TO verify
                     graph.individuals[j]['state'] = ASYMP
