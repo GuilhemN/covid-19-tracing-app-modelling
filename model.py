@@ -48,6 +48,9 @@ pContamination = 0.02 # probabilty of contaminating another individual upon cont
 # we took R0=2 estimate from [4] and : 34 contacts/day, an average time of infectiousness of 5+14 days
 # So (5+14)*34*0.003 = 1.9 this is plausible given the estimate of R0
 
+pAsympt = 0.4 # probability of being asymptomatic when infected | proba qu'une personne infectée soit asymptomatique
+# according to [4]
+
 pAtoG = 0.12 # probability of going from asymptomatic state to cured | proba de passer de asymptomatique à guéri
 pAtoIS = 0.06 # probability of going from asymptomatic state to symptomatic state | passage de asymptomatique à avec symptômes
 # average time infectious without symptoms : 1/(0.06+0.12) = 5.5 days of incubation period plausible according to [4]
@@ -80,9 +83,10 @@ import ipywidgets as widgets
 
 HEALTHY = 0
 ASYMP = 1
-SYMP = 2
-CURED = 3
-DEAD = 4
+PRESYMP = 2
+SYMP = 3
+CURED = 4
+DEAD = 5
 
 
 class Graph:
@@ -94,11 +98,12 @@ class Graph:
 
         self.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
 
-        self.nbS = 0
-        self.nbAS = 0
         self.nbHealthy = 0
-        self.nbDead = 0
+        self.nbAS = 0
+        self.nbPS = 0
+        self.nbS = 0
         self.nbCured = 0
+        self.nbDead = 0
         self.nbQuarantine = 0
         self.nbInfectedByAS = 0
 
@@ -206,8 +211,12 @@ def contamination(graph, i, j):
         graph.nbInfectedByAS += 1
 
     graph.nbHealthy -= 1
-    graph.nbAS += 1
-    graph.individuals[j]['state'] = ASYMP
+    if random.random() > pAsympt:
+        graph.individuals[j]['state'] = ASYMP
+        graph.nbAS += 1
+    else:
+        graph.individuals[j]['state'] = PRESYMP
+        graph.nbPS += 1
 
 
 # Step from a day to the next day | Passage au jour suivant du graphe
@@ -369,5 +378,5 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
 
 update_prob(utilApp, pReport, pQNotif)
 
-interact_manual(update_prob, app_utilisation = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = utilApp),                     report_to_app = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pReport),                     quarantine_when_notif = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pQNotif))
+interact_manual(update_prob, app_utilisation = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = utilApp), report_to_app = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pReport), quarantine_when_notif = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value = pQNotif))
 
