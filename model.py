@@ -44,6 +44,15 @@ warningAfterSymptoms=True #People warn the app immediately after having symptoms
 quarantineAfterNotification=True # If True, when notif I go to quarantine and ask a test (with some proba). If test positive, stay in quarantine and warn appli in the other case, I leave quarantine|Si True dès la reception d'une notif, avec la proba d'écouter l'appli je me confine, je demande un test. Si ce test est positif, je reste en quarantaine et je prévient l'appli. S'il est négatif, je sors de quarantaine.
 #If False, when notif, with proba to listen the app, I ask test. After the test, I warn app and go to quarantine or continue my life |Si False : à la réception d'une notif, avec la proba d'écouter l'appli , je demande un test. En fonction du résultat du test je me confine et je préviens l'appli ou je continue ma vie normale.
 
+
+###############
+# TEST PARAMS #
+###############
+
+testWindow = (3, 10) # Test are only effective during a given window (time since infection)
+daysUntilResult = 5
+pFalseNegative = 0.3
+
 #################
 # PROBABILITIES #
 #################
@@ -138,7 +147,8 @@ def init_graph_exp(graph):
             graph.nbHealthy +=1
         else:
             graph.nbAS +=1
-        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app, 'timeSinceInfection': -1})
+            
+        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app, "daysIncubation": 0, 'timeSinceInfection': -1, "timeLeftForTestResult": -1})
 
     # affecting degrees to vertices
     degrees = np.around(np.random.exponential(deg_avg, nbIndividuals))
@@ -203,7 +213,7 @@ def init_graph_household(graph):
             graph.nbHealthy += 1
         else:
             graph.nbAS += 1
-        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app, "daysIncubation": 0, 'timeSinceInfection': -1})
+        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app, "daysIncubation": 0, 'timeSinceInfection': -1, "timeLeftForTestResult": -1})
         
     graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
 
@@ -218,7 +228,7 @@ def contamination(graph, i, j):
         return
 
     #i is the infected
-    if graph.individuals[i]['state'] == PRESYMP or graph.individuals[i]['state'] == ASYMP or graph.individuals[i]['state'] == SYMP:
+    if graph.individuals[i]['state'] in [PRESYMP, ASYMP, SYMP]:
         if graph.individuals[j]['state'] == HEALTHY:
             if random.random() < pContamination:
                 if graph.individuals[i]['state'] == ASYMP or graph.individuals[i]['state'] == PRESYMP:
@@ -232,6 +242,25 @@ def contamination(graph, i, j):
                     graph.individuals[j]['state'] = PRESYMP
                     graph.individuals[j]['daysIncubation'] = round(np.random.lognormal(incubMeanlog, incubSdlog))
                     graph.nbPS += 1
+
+
+def test_individual(individual):
+    # if there is a test incoming, the person is not tested again
+    if individual['timeLeftForTestResult'] >= 0:
+        return
+    
+    if individual['state'] in [HEALTHY, DEAD, CURED]:
+        individual['lastTestResult'] = False # We assert there are no false positives
+        return
+    
+    individual['timeLeftForTestResult'] = daysUntilResult
+    if individual['timeSinceInfection'] < testWindow[0] or individual['timeSinceInfection'] > testWindow[1]:
+        individual['lastTestResult'] = False # Not in the detection window, the test fails
+        return
+    
+    # Otherwise the person is ill
+    # The test result depends whether we have a false negative
+    individual['lastTestResult'] = not random.random() < pFalseNegative
 
 # Send notification to people who have been in touch with i | Envoie d'une notif aux personnes en contact avec i
 def send_notification(graph, i):
