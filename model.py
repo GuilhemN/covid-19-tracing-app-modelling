@@ -133,7 +133,7 @@ def init_graph_exp(graph):
             graph.nbHealthy +=1
         else:
             graph.nbAS +=1
-        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app})
+        graph.individuals.append({"state": s, "daysQuarantine": 0, "app": app, 'timeSinceInfection': -1})
 
     # affecting degrees to vertices
     degrees = np.around(np.random.exponential(deg_avg, nbIndividuals))
@@ -198,7 +198,7 @@ def init_graph_household(graph):
             graph.nbHealthy += 1
         else:
             graph.nbAS += 1
-        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app, "daysIncubation" = 0})
+        graph.individuals.append({"state": s, "confined": False, "daysQuarantine": 0, "app": app, "daysIncubation": 0, 'timeSinceInfection': -1})
         
     graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
 
@@ -212,6 +212,7 @@ def contamination(graph, i, j):
         contamination(graph, j, i)
         return
 
+    #i is the infected
     if graph.individuals[i]['state'] == PRESYMP or graph.individuals[i]['state'] == ASYMP or graph.individuals[i]['state'] == SYMP:
         if graph.individuals[j]['state'] == HEALTHY:
             if random.random() < pContamination:
@@ -219,7 +220,7 @@ def contamination(graph, i, j):
                     graph.nbInfectedByASPS += 1
                 graph.individuals[j]['timeSinceLastInfection'] = 0
                 graph.nbHealthy -= 1
-                if random.random() > pAsympt:
+                if random.random() < pAsympt:
                     graph.individuals[j]['state'] = ASYMP
                     graph.nbAS += 1
                 else:
@@ -262,6 +263,9 @@ def step(graph):
         graph.individuals[i]['daysQuarantine'] -= 1
         if graph.individuals[i]['daysQuarantine'] > 0:
             graph.nbQuarantine += 1
+
+        if graph.individuals[i]['timeSinceInfection'] >=0:
+            graph.individuals[i]['timeSinceInfection'] += 1
 
     # update the states | on met à jour les états des individus
     for i, individual in enumerate(graph.individuals):
