@@ -504,7 +504,7 @@ def step(graph):
 
 import matplotlib.pyplot as plt
 
-fig, ((ax, ax2), (ax3, ax4), (ax5, _)) = plt.subplots(3, 2, figsize=[15,10])
+fig, ((ax, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=[15,10])
 xs = []
 y_D = []
 y_MS = []
@@ -550,25 +550,25 @@ def draw_viz():
     labels2 = ["In quarantine and non infected", "In quarantine"]
     ax2.stackplot(xs, y_QuarantineNonI, y_QuarantineNonD, labels=labels2)
 
-    line, = ax3.plot(xs, y_InfectByAS)
-    line.set_label("Total infections by asympt.")
+    #line, = ax3.plot(xs, y_InfectByAS)
+    #line.set_label("Total infections by asympt.")
     
-    line, = ax4.plot(xs, y_Q)
+    line, = ax3.plot(xs, y_Q)
     line.set_label("Cumulative quarantine days per person")
-    line, = ax4.plot(xs, y_QuarantineNonITotal)
+    line, = ax3.plot(xs, y_QuarantineNonITotal)
     line.set_label("Cumulative quarantine days of healthy people per person")
-    line, = ax4.plot(xs, y_TestTotal)
+    line, = ax3.plot(xs, y_TestTotal)
     line.set_label("Cumulative number of tests per person")
     
-    line, = ax5.plot(xs, y_Test)
+    line, = ax4.plot(xs, y_Test)
     line.set_label("Number of tests")
     
     
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=3)
     ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=2)
-    ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=1)
+    #ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=1)
+    ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=2)
     ax4.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=2)
-    ax5.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=2)
     plt.tight_layout()
 
 def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
@@ -602,12 +602,16 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     y_Test.clear()
     y_TestTotal.clear()
     
+    maxSymp = 0
     for step_ind in range(nbSteps):
         # update matplotlib
         update_viz(graph)
         # update simulation
         step(graph)
+        maxSymp = max(maxSymp, graph.nbS)
 
+    print("Number of deceased:", graph.nbDead)
+    print("Max. nb of sympomatic people:", maxSymp)
     draw_viz()
     plt.show()
 
