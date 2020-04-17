@@ -322,11 +322,6 @@ def step(graph):
 
     # For each possible encounter | On constate toutes les rencontres entre individus
     for i in range(nbIndividuals):
-        
-        # Some people send notif even though they are not actually infected by covid | certaines personnes envoient une notif alors qu'elles n'ont pas le covid.
-        # if we warningAfterSymptoms, each individual have a probability of sending a false notification due to symptoms like COVID19 but that are not those of COVID19
-        if warningAfterSymptoms and random.random() < pSymptomsNotCovid:
-            send_notification(graph, i)
 
         graph.individuals[i]['daysIncubation'] -= 1
         
@@ -406,7 +401,7 @@ def step(graph):
                 graph.nbCured += 1
                 individual['state'] = CURED
         if individual['state'] == PRESYMP:
-            if individual['daysIncubation'] == 0: # The person developps symptoms
+            if individual['daysIncubation'] == 0: # The person develops symptoms
                 graph.nbPS -= 1
                 graph.nbS += 1
                 individual['state'] = SYMP
@@ -433,6 +428,12 @@ def step(graph):
                 graph.nbS -= 1
                 graph.nbDead += 1
                 individual['state'] = DEAD
+                
+        
+        # Some people send notif even though they are not actually infected by covid | certaines personnes envoient une notif alors qu'elles n'ont pas le covid.
+        # if warningAfterSymptoms is True, each individual have a probability of sending a false notification due to symptoms that are misinterpreted as from COVID19
+        if warningAfterSymptoms and random.random() < pSymptomsNotCovid:
+            send_notification(graph, i)
     
     # deleting oldest recorded day | suppression du plus vieux jour de l'historique
     for encounter in graph.encounters:
