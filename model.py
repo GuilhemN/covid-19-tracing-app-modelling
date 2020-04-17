@@ -484,7 +484,7 @@ y_MAS = []
 y_S = []
 y_G = []
 y_Q = []
-y_InfectByAS = []
+y_InfectByASPS = []
 y_QuarantineNonI = []
 y_QuarantineNonD = []
 y_QuarantineNonITotal = []
@@ -495,14 +495,14 @@ ax.set_ylim([0, nbIndividuals])
 
 def update_viz(graph):
     xs.append(len(xs))
-    y_D.append(graph.nbDead)                        # number of deceased people
-    y_MS.append(graph.nbS)                          # number of symptomatic people 
-    y_MPS.append(graph.nbPS)                        # number of premptomatic people 
-    y_MAS.append(graph.nbAS)                        # number of asymptomatic people
-    y_S.append(graph.nbHealthy)                     # number of healthy people
-    y_G.append(graph.nbCured)                       # number of cured persons
-    y_Q.append(graph.nbQuarantineTotal)             # number of people in quarantine
-    y_InfectByAS.append(graph.nbInfectedByASPS)     # number of people infected by asymp. people
+    y_D.append(graph.nbDead)                          # number of deceased people
+    y_MS.append(graph.nbS)                            # number of symptomatic people 
+    y_MPS.append(graph.nbPS)                          # number of premptomatic people 
+    y_MAS.append(graph.nbAS)                          # number of asymptomatic people
+    y_S.append(graph.nbHealthy)                       # number of healthy people
+    y_G.append(graph.nbCured)                         # number of cured persons
+    y_Q.append(graph.nbQuarantineTotal)               # number of people in quarantine
+    y_InfectByASPS.append(graph.nbInfectedByASPS)     # number of people infected by asymp. + presymp. people
     y_QuarantineNonI.append(graph.nbQuarantineNonI)
     y_QuarantineNonD.append(graph.nbQuarantineNonD)
     y_Test.append(graph.nbTest)
@@ -522,7 +522,7 @@ def draw_viz():
     labels2 = ["In quarantine and non infected", "In quarantine"]
     ax2.stackplot(xs, y_QuarantineNonI, y_QuarantineNonD, labels=labels2)
 
-    #line, = ax3.plot(xs, y_InfectByAS)
+    #line, = ax3.plot(xs, y_InfectByASPS)
     #line.set_label("Total infections by asympt.")
     
     line, = ax3.plot(xs, y_Q)
@@ -566,11 +566,12 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     xs.clear()
     y_D.clear()
     y_MS.clear()
+    y_MPS.clear()
     y_MAS.clear()
     y_S.clear()
     y_G.clear()
     y_Q.clear()
-    y_InfectByAS.clear()
+    y_InfectByASPS.clear()
     y_QuarantineNonI.clear()
     y_QuarantineNonITotal.clear()
     y_QuarantineNonD.clear()
