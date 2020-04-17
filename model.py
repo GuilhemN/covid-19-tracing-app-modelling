@@ -151,6 +151,35 @@ class Graph:
         self.nbQuarantineNonD = 0
         self.nbQuarantineNonI = 0
 
+# Class to handle individuals, to use for later
+class Individual:
+    """ Object holding the representation of an individual """
+    
+    def __init__(self, state, daysQuarantine, app, sentNotification, daysIncubation, timeSinceInfection, timeLeftForTestResult):
+        self.state = state
+        self.daysQuarantine = daysQuarantine
+        self.app = app
+        self.sentNotification = sentNotification
+        self.daysIncubation = daysIncubation
+        self.timeSinceInfection = timeSinceInfection
+        self.timeLeftForTestResult = timeLeftForTestResult
+
+    def in_state(self, state):
+        return self.state == state
+
+    def is_infected(self):
+        return self.state in [PRESYMP, ASYMP, SYMP]
+    
+    def has_no_covid(self):
+        return self.state in [HEALTHY, CURED]
+
+    def in_quarantine(self):
+        return self.daysQuarantine > 0
+
+    def go_quarantine(self):
+        if self.daysQuarantine <= 0:
+            self.daysQuarantine = daysQuarantine # goes into quarantine if isn't already
+
 # # Graph generation
 
 def init_graph_exp(graph):
