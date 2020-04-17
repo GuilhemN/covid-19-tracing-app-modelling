@@ -4,8 +4,8 @@ from IPython import get_ipython
 # GRAPH GENERATION #
 ####################
 
-nbIndividuals = 1000 # number of people in the graph | nombre d'individus dans le graphe
-initHealthy = 0.99 # percentage of healthy people at start | la proportion de personnes saines à l'intant initial (les autres sont porteurs asymptomatiques)
+nbIndividuals = 10000 # number of people in the graph | nombre d'individus dans le graphe
+initHealthy = 0.95 # percentage of healthy people at start | la proportion de personnes saines à l'intant initial (les autres sont porteurs asymptomatiques)
 
 # graph generation for exponential degrees distribution
 #------------------------------------------------------
@@ -21,7 +21,7 @@ extern_contact_proba = 0.3 # probabilty of meeting a person of a different house
 household_size = (2,6) # min and max size of an household (uniform distribution) | extremums de la taille d'un foyer
 household_link = 0.9 # probability of contact between members of a household | proba de contact entre membres d'un foyer
 
-community_size = 300 # number of households in the community | nombre de foyers dans une communauté
+community_size = 2500 # number of households in the community | nombre de foyers dans une communauté
 community_link = 0.3 # probability of contact across households | proba de contact entre foyers
 av_deg_by_household = 400 # number of link from a household | nombre moyen de liens depuis un foyer
 
@@ -33,15 +33,15 @@ av_deg_by_household = 400 # number of link from a household | nombre moyen de li
 ##############
 
 daysNotif = 14 # number of days the app checks back for contact notification | nombre de jours vérifiés par l'appli pour notifier un contact
-utilApp = 0.99 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
+utilApp = 1 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
 
 pDetection = 0.9 # prob. that the app detects a contact | proba que l'appli détecte un contact
 pReport = 0.9 # prob. that a user reports his symptoms | proba qu'un utilisateur alerte de ses symptômes
 pQNotif = 0.8 # probablity of going into quarantine upon recieving a notification | proba de mise en confinement lors de la réception d'une notification
-pSymptomsNotCovid= 0.001 #Every day, everyone send a norification with proba PSymptomsNotCovid | tous les jours, tout le monde avec proba PSymptomsNotCovid envoye une notif à l'appli 
+pSymptomsNotCovid= 0.0001 #Every day, everyone send a norification with proba PSymptomsNotCovid | tous les jours, tout le monde avec proba PSymptomsNotCovid envoye une notif à l'appli 
 
 warningAfterSymptoms=False#People warn the app immediately after having symptoms | on prévient l'application directement après avoir développé les symptomes 
-quarantineAfterNotification=True # If True, when notif I go to quarantine and ask a test (with some proba). If test positive, stay in quarantine and warn appli in the other case, I leave quarantine|Si True dès la reception d'une notif, avec la proba d'écouter l'appli je me confine, je demande un test. Si ce test est positif, je reste en quarantaine et je prévient l'appli. S'il est négatif, je sors de quarantaine.
+quarantineAfterNotification=False # If True, when notif I go to quarantine and ask a test (with some proba). If test positive, stay in quarantine and warn appli in the other case, I leave quarantine|Si True dès la reception d'une notif, avec la proba d'écouter l'appli je me confine, je demande un test. Si ce test est positif, je reste en quarantaine et je prévient l'appli. S'il est négatif, je sors de quarantaine.
 #If False, when notif, with proba to listen the app, I ask test. After the test, I warn app and go to quarantine or continue my life |Si False : à la réception d'une notif, avec la proba d'écouter l'appli , je demande un test. En fonction du résultat du test je me confine et je préviens l'appli ou je continue ma vie normale.
 
 
@@ -50,7 +50,7 @@ quarantineAfterNotification=True # If True, when notif I go to quarantine and as
 ###############
 
 testWindow = (3, 10) # Test are only effective during a given window (time since infection)
-daysUntilResult = 2
+daysUntilResult = 5
 pFalseNegative = 0.3
 
 #################
@@ -59,11 +59,11 @@ pFalseNegative = 0.3
 # !! Probabilities are given for 1 step of the process, thus overall prob. follows a geometric law for which expected values have been calculated
 
 
-pCloseContact = 0.02 #the probability that a contact will be a close contact, the type that is detected by the app
-pContaminationCloseContact = 0.2 #probability that a close contact with an infected will lead to the transmission of the virus
-pContaminationCloseContactAsymp = 0.05
+pCloseContact = 0.5 #the probability that a contact will be a close contact, the type that is detected by the app
+pContaminationCloseContact = 0.03 #probability that a close contact with an infected will lead to the transmission of the virus
+pContaminationCloseContactAsymp = 0.0002
 
-pContaminationFar = 0.001 # probabilty of contaminating another individual upon non close contact (environnemental or short contact) | proba de contaminer un autre individu alors qu'il y a eu contact
+pContaminationFar = 0.0005 # probabilty of contaminating another individual upon non close contact (environnemental or short contact) | proba de contaminer un autre individu alors qu'il y a eu contact
 # we took R0=2 estimate from [4] and : 34 contacts/day, an average time of infectiousness of 5+14 days
 # So (5+14)*34*0.003 = 1.9 this is plausible given the estimate of R0
 pContaminationFarAsymp = 0.0005
@@ -77,7 +77,7 @@ incubMeanlog = 1.644 # -> ~5.5 days
 incubSdlog = 0.363 # -> ~2.1 days
 # according to [4]
 
-pAtoG = 0.12 # probability of going from asymptomatic state to cured | proba de passer de asymptomatique à guéri
+pAtoG = 0.1 # probability of going from asymptomatic state to cured | proba de passer de asymptomatique à guéri
 pAtoIS = 0.06 # probability of going from asymptomatic state to symptomatic state | passage de asymptomatique à avec symptômes
 # average time infectious without symptoms : 1/(0.06+0.12) = 5.5 days of incubation period plausible according to [4]
 # proportion of infected that will never have symptoms : 0.12/(0.06+0.12) = 66% plausible according to estimates (but a lot of uncertainty about that)
@@ -91,7 +91,7 @@ pIStoD = 0.003 # probability of dying when symptomatic | proba de décès d'une 
 
 pQSymptoms = 0.9 # probability of going into quarantine when one has symptoms | proba de confinement lors de détection des symptômes
 
-quarantineFactor = 7 # reduction factor applied to the probabilities when one is in quarantine | réduction des probas de rencontre lors du confinement
+quarantineFactor = 100 # reduction factor applied to the probabilities when one is in quarantine | réduction des probas de rencontre lors du confinement
 daysQuarantine = 14 # duration of the quarantine | durée de la quarantaine
 
 
@@ -327,10 +327,10 @@ def send_notification(graph, i):
 #     self.nbQuarantineNonI = 0
 
 
-
+nbDEBUG = 0
 # Step from a day to the next day | Passage au jour suivant du graphe
 def step(graph):  
-
+    global nbDEBUG
     graph.nbTest = 0
     for encounter in graph.encounters:
         encounter.append([]) # will contain every encounter of the day | contiendra les nouvelles rencontres du jour
@@ -403,7 +403,10 @@ def step(graph):
          
                 if individual['daysQuarantine'] <= 0:
                     individual['daysQuarantine'] = daysQuarantine # Goes into quarantine if isn't already
-                   
+                    if individual['state'] == PRESYMP or individual['state'] == ASYMP:
+                        nbDEBUG +=1
+                        
+                        
                 if random.random() < pReport: # Not everyone reports a positive test to the app
                     send_notification(graph, i)
                     
