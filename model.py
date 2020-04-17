@@ -5,8 +5,9 @@ from IPython import get_ipython
 ####################
 
 nbIndividuals = 1000 # number of people in the graph | nombre d'individus dans le graphe
-initHealthy = 0.85 # percentage of healthy people at start | la proportion de personnes saines à l'intant initial (les autres sont porteurs asymptomatiques)
-initCured = 0.1
+initHealthy = 0.85 # proportion of healthy people at start | la proportion de personnes saines à l'intant initial
+initCured = 0.1 # proportion of cured people at start | proportion de personnes guéries à l'instant initial
+# ALL other people are presymptomatic at start | TOUTES les autres personnes sont asymptomatiques au départ
 
 
 # graph generation for exponential degrees distribution
@@ -16,11 +17,11 @@ av_household_size = 6 # avergave size of household | la taille moyenne d'un foye
 household_proba = 1 # probability of meeting a person of the same household | la probabilité de contact par jour entre membres d'un même foyer
 extern_contact_proba = 0.3 # probabilty of meeting a person of a different household | la probabilité de contact par jour entre personne de foyers différents
 
-# average contact per day = 0.3*(100-6) + 6 = 34.2
+# average contacts per day = 0.3*(100-6) + 6 = 34.2
 
 # graph generation with organization in households
 #-------------------------------------------------
-household_size = (3,5) # min and max size of an household (uniform distribution) | extremums de la taille d'un foyer
+household_size = (3, 5) # min and max size of an household (uniform distribution) | extremums de la taille d'un foyer
 household_link = 1 # probability of contact between members of a household | proba de contact entre membres d'un foyer
 
 community_size = 1000 # 2500 is good but a bit slow | number of households in the community | nombre de foyers dans une communauté
@@ -202,29 +203,41 @@ class Individual:
 
 # # Graph generation
 
-def init_graph_exp(graph):
-    """ Graph initialisation based on exponential ditribution of degrees """
-    
-    # creation of individuals
+def create_individuals(graph):
     for i in range(nbIndividuals):
         app = False
         if random.uniform(0,1) < utilApp:
             app = True
+
         s = PRESYMP
         incub =0
+
         r = random.random()
         if r < initHealthy:
             s = HEALTHY
             graph.nbHealthy += 1
-        elif r> initHealthy and r< initHealthy + initCured:
+        elif r < initHealthy + initCured:
             s = CURED
             graph.nbCured += 1
         else:
+
             incub = round(np.random.lognormal(incubMeanlog, incubSdlog))
             graph.nbPS += 1
         
         # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
         graph.individuals.append(Individual(s,  0, app, False, incub, -1, -1))
+
+            s = PRESYMP
+            graph.nbPS += 1
+        
+        # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
+        graph.individuals.append(Individual(s, 0, app, False, 0, -1, -1))
+
+def init_graph_exp(graph):
+    """ Graph initialisation based on exponential ditribution of degrees """
+    
+    create_individuals(graph)
+
 
     # affecting degrees to vertices
     degrees = np.around(np.random.exponential(deg_avg, nbIndividuals))
@@ -278,27 +291,8 @@ def init_graph_household(graph):
 
     nbIndividuals = len(graph.adj)
     
-    # creation of individuals
-    for i in range(nbIndividuals):
-        app = False
-        if random.uniform(0,1) < utilApp:
-            app = True
-        s = PRESYMP
-        incub = 0
-        r = random.random()
-        if r < initHealthy:
-            s = HEALTHY
-            graph.nbHealthy += 1
-        elif r> initHealthy and r< initHealthy + initCured:
-            s = CURED
-            graph.nbCured += 1
-        else:
-            graph.nbPS += 1
-            incub = round(np.random.lognormal(incubMeanlog, incubSdlog))
+    create_individuals(graph)
 
-        # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
-        graph.individuals.append(Individual(s,  0, app, False, incub, -1, -1))
-        
     graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
 
 # # Updating the graph
