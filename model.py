@@ -366,11 +366,8 @@ def step(graph):
                 graph.nbS += 1
                 individual['state'] = SYMP
                 
-<<<<<<< HEAD
-                # send the notifications (encounters[i] is empty if i hasn't the app | envoi des notifs (rencontres[i] vide si i n'a pas l'appli)
-=======
+
                 # send the notifications (encounters[i] is empty if i doesn't have the app | envoi des notifs (rencontres[i] vide si i n'a pas l'appli)
->>>>>>> 226d14614657599345cafdd402db1ffa61dea68e
                 if random.random() < pReport and warningAfterSymptoms: # Faire avec présymptomatique
                     send_notification(graph,i)
                 if random.random() < pQSymptoms: # go into quarantine if symptoms appear | mise en confinement à la détection des symptomes
