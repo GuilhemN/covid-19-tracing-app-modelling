@@ -35,13 +35,13 @@ av_deg_by_household = 400 # number of link from a household | nombre moyen de li
 ##############
 
 daysNotif = 14 # number of days the app checks back for contact notification | nombre de jours vérifiés par l'appli pour notifier un contact
-utilApp = 0.8 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
+utilApp = 0 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
 
 pDetection = 0.9 # prob. that the app detects a contact | proba que l'appli détecte un contact
 pReport = 0.9 # prob. that a user reports his symptoms | proba qu'un utilisateur alerte de ses symptômes
 pQNotif = 0.8 # probablity of going into quarantine upon recieving a notification | proba de mise en confinement lors de la réception d'une notification
 
-pSymptomsNotCovid = 0.001 # every day, everyone sends a notification with prob. pSymptomsNotCovid | chaque jour, tout le monde envoie une notif avec proba PSymptomsNotCovid
+pSymptomsNotCovid = 0.005 # every day, everyone sends a notification with prob. pSymptomsNotCovid | chaque jour, tout le monde envoie une notif avec proba PSymptomsNotCovid
 
 ############
 # POLICIES #
@@ -211,6 +211,7 @@ def init_graph_exp(graph):
         if random.uniform(0,1) < utilApp:
             app = True
         s = PRESYMP
+        incub =0
         r = random.random()
         if r < initHealthy:
             s = HEALTHY
@@ -219,10 +220,11 @@ def init_graph_exp(graph):
             s = CURED
             graph.nbCured += 1
         else:
+            incub = round(np.random.lognormal(incubMeanlog, incubSdlog))
             graph.nbPS += 1
         
         # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
-        graph.individuals.append(Individual(s,  0, app, False, 0, -1, -1))
+        graph.individuals.append(Individual(s,  0, app, False, incub, -1, -1))
 
     # affecting degrees to vertices
     degrees = np.around(np.random.exponential(deg_avg, nbIndividuals))
@@ -282,6 +284,7 @@ def init_graph_household(graph):
         if random.uniform(0,1) < utilApp:
             app = True
         s = PRESYMP
+        incub = 0
         r = random.random()
         if r < initHealthy:
             s = HEALTHY
@@ -291,9 +294,10 @@ def init_graph_household(graph):
             graph.nbCured += 1
         else:
             graph.nbPS += 1
+            incub = round(np.random.lognormal(incubMeanlog, incubSdlog))
 
         # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
-        graph.individuals.append(Individual(s,  0, app, False, 0, -1, -1))
+        graph.individuals.append(Individual(s,  0, app, False, incub, -1, -1))
         
     graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
 
