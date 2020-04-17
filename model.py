@@ -23,7 +23,7 @@ extern_contact_proba = 0.3 # probabilty of meeting a person of a different house
 household_size = (2,6) # min and max size of an household (uniform distribution) | extremums de la taille d'un foyer
 household_link = 1 # probability of contact between members of a household | proba de contact entre membres d'un foyer
 
-community_size = 2500 # number of households in the community | nombre de foyers dans une communauté
+community_size = 500 # 2500 is good but a bit slow | number of households in the community | nombre de foyers dans une communauté
 community_link = 0.3 # probability of contact across households | proba de contact entre foyers
 av_deg_by_household = 400 # number of link from a household | nombre moyen de liens depuis un foyer
 
@@ -504,7 +504,7 @@ def step(graph):
 
 import matplotlib.pyplot as plt
 
-fig, (ax, ax2, ax3, ax4, ax5) = plt.subplots(5, 1, figsize=[10,15])
+fig, ((ax, ax2), (ax3, ax4), (ax5, _)) = plt.subplots(3, 2, figsize=[15,10])
 xs = []
 y_D = []
 y_MS = []
@@ -554,19 +554,17 @@ def draw_viz():
     line.set_label("Total infections by asympt.")
     
     line, = ax4.plot(xs, y_Q)
-    line.set_label("Total number of days of quarantine per person")
-
+    line.set_label("Cumulative quarantine days per person")
     line, = ax4.plot(xs, y_QuarantineNonITotal)
-    line.set_label("Total number of days of quarantine of healthy people per person")
-
+    line.set_label("Cumulative quarantine days of healthy people per person")
     line, = ax4.plot(xs, y_TestTotal)
-    line.set_label("Total number of tests per person")
+    line.set_label("Cumulative number of tests per person")
     
     line, = ax5.plot(xs, y_Test)
     line.set_label("Number of tests")
     
     
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=6)
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=3)
     ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=2)
     ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=1)
     ax4.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=2)
@@ -584,7 +582,7 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     pQNotif = quarantine_when_notif
     nbSteps = 60
     
-    nbIndividuals = 1000 # you may change the number of individuals for the exponential distribution graph here
+    nbIndividuals = 100 # you may change the number of individuals for the exponential distribution graph here
 
     graph = Graph()
     init_graph_household(graph) # default graph generation using households structure, as shown in the Results section
