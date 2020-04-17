@@ -227,9 +227,6 @@ def create_individuals(graph):
         # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
         graph.individuals.append(Individual(s,  0, app, False, incub, -1, -1))
 
-        
-        # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
-        graph.individuals.append(Individual(s, 0, app, False, 0, -1, -1))
 
 def init_graph_exp(graph):
     """ Graph initialisation based on exponential ditribution of degrees """
