@@ -111,7 +111,6 @@ daysQuarantine = 14 # duration of the quarantine | durée de la quarantaine
 
 # Librairies
 import random
-import math as m
 import numpy as np
 
 # -> sliders
@@ -469,7 +468,6 @@ def step(graph):
 # Interactive model below (it takes about 10-15 sec to appear and to run a simulation)
 
 import matplotlib.pyplot as plt
-from matplotlib import style
 
 fig, (ax, ax2, ax3, ax4, ax5) = plt.subplots(5, 1, figsize=[10,10])
 xs = []
@@ -531,6 +529,7 @@ def draw_viz():
     plt.tight_layout()
 
 def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
+    global nbIndividuals
     global utilApp
     global pReport
     global pQNotif
@@ -562,7 +561,6 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     y_D = []
     y_MS = []
     y_MAS = []
-    y_MPS = []
     y_S = []
     y_G = []
     y_Q = []
