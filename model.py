@@ -1,5 +1,5 @@
 from IPython import get_ipython
-
+# %%
 ####################
 # GRAPH GENERATION #
 ####################
@@ -170,6 +170,35 @@ class Graph:
         self.nbQuarantineNonD = 0
         self.nbQuarantineNonI = 0
 
+# Class to handle individuals, to use for later
+class Individual:
+    """ Object holding the representation of an individual """
+    
+    def __init__(self, state, daysQuarantine, app, sentNotification, daysIncubation, timeSinceInfection, timeLeftForTestResult):
+        self.state = state
+        self.daysQuarantine = daysQuarantine
+        self.app = app
+        self.sentNotification = sentNotification
+        self.daysIncubation = daysIncubation
+        self.timeSinceInfection = timeSinceInfection
+        self.timeLeftForTestResult = timeLeftForTestResult
+
+    def in_state(self, state):
+        return self.state == state
+
+    def is_infected(self):
+        return self.state in [PRESYMP, ASYMP, SYMP]
+    
+    def has_no_covid(self):
+        return self.state in [HEALTHY, CURED]
+
+    def in_quarantine(self):
+        return self.daysQuarantine > 0
+
+    def go_quarantine(self):
+        if self.daysQuarantine <= 0:
+            self.daysQuarantine = daysQuarantine # goes into quarantine if isn't already
+
 # # Graph generation
 
 def init_graph_exp(graph):
@@ -332,7 +361,7 @@ def test_individual(individual, graph):
 
 
 def send_notification(graph, i):
-	""" Send notification to people who have been in touch with i | Envoi d'une notif aux personnes ayant été en contact avec i """
+    """ Send notification to people who have been in touch with i | Envoi d'une notif aux personnes ayant été en contact avec i """
     # Note: graphe.encounter[i] is empty if i does not have the app so there is no need to have an additional test
     
     if graph.individuals[i]['sentNotification']:
@@ -502,8 +531,9 @@ y_Q = []
 y_InfectByAS = []
 y_QuarantineNonI = []
 y_QuarantineNonD = []
-y_Quarantine = []
+y_QuarantineNonITotal = []
 y_Test = []
+y_TestTotal = []
 
 ax.set_ylim([0, nbIndividuals])
 
@@ -519,34 +549,43 @@ def update_viz(graph):
     y_InfectByAS.append(graph.nbInfectedByASPS)     # number of people infected by asymp. people
     y_QuarantineNonI.append(graph.nbQuarantineNonI)
     y_QuarantineNonD.append(graph.nbQuarantineNonD)
-    y_Quarantine.append(graph.nbQuarantine)
     y_Test.append(graph.nbTest)
+    if y_QuarantineNonITotal != []:
+        y_QuarantineNonITotal.append((graph.nbQuarantineNonI + nbIndividuals*y_QuarantineNonITotal[-1])/nbIndividuals)
+        y_TestTotal.append((graph.nbTest + nbIndividuals*y_TestTotal[-1])/nbIndividuals)
+    else:
+        y_QuarantineNonITotal.append(graph.nbQuarantineNonI/nbIndividuals)
+        y_TestTotal.append(graph.nbTest/nbIndividuals)
     
 def draw_viz():
     ax.cla()
     labels = ["Deceased", "Asymptomatic","Presymptomatic", "Symptomatic", "Cured", "Healthy"]
     ax.stackplot(xs, y_D, y_MAS,y_MPS, y_MS, y_G, y_S , labels=labels, edgecolor="black", colors=["darkred", "orange","yellow", "red", "dodgerblue", "mediumseagreen"])
     
-    line, = ax2.plot(xs, y_QuarantineNonI)
-    line.set_label("In quarantine and non infected")
-    line, = ax2.plot(xs, y_QuarantineNonD)
-    line.set_label("In quarantine")
+    labels2 = ["In quarantine and non infected", "In quarantine"]
+    ax2.stackplot(xs, y_QuarantineNonI, y_QuarantineNonD, labels=labels2)
 
     line, = ax3.plot(xs, y_InfectByAS)
     line.set_label("Total infections by asympt.")
     
     line, = ax4.plot(xs, y_Q)
     line.set_label("Total number of days of quarantine per person")
+
+    line, = ax4.plot(xs, y_QuarantineNonITotal)
+    line.set_label("Total number of days of quarantine of healthy people per person")
+
+    line, = ax4.plot(xs, y_TestTotal)
+    line.set_label("Total number of tests per person")
     
     line, = ax5.plot(xs, y_Test)
     line.set_label("Total number of tests")
     
     
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),shadow=True, ncol=6)
-    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),shadow=True, ncol=2)
-    ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),shadow=True, ncol=1)
-    ax4.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),shadow=True, ncol=2)
-    ax5.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),shadow=True, ncol=2)
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=6)
+    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=2)
+    ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=1)
+    ax4.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=2)
+    ax5.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),shadow=True, ncol=2)
     plt.tight_layout()
 
 def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
@@ -554,17 +593,6 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     global utilApp
     global pReport
     global pQNotif
-    global xs
-    global y_D
-    global y_MS
-    global y_MAS
-    global y_S
-    global y_G
-    global y_Q
-    global y_InfectByAS
-    global y_QuarantineNonD
-    global y_QuarantineNonI
-    global y_Test
     
     utilApp = app_utilisation
     pReport = report_to_app
@@ -577,18 +605,19 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
     init_graph_household(graph) # default graph generation using households structure, as shown in the Results section
     # uncomment this to get a graph with degrees following an exponential distribution
     #init_graph_exp(graph)
-
-    xs = []
-    y_D = []
-    y_MS = []
-    y_MAS = []
-    y_S = []
-    y_G = []
-    y_Q = []
-    y_InfectByAS = []
-    y_QuarantineNonI = []
-    y_QuarantineNonD = []
-    y_Test = []
+    xs.clear()
+    y_D.clear()
+    y_MS.clear()
+    y_MAS.clear()
+    y_S.clear()
+    y_G.clear()
+    y_Q.clear()
+    y_InfectByAS.clear()
+    y_QuarantineNonI.clear()
+    y_QuarantineNonITotal.clear()
+    y_QuarantineNonD.clear()
+    y_Test.clear()
+    y_TestTotal.clear()
     
     for step_ind in range(nbSteps):
         # update matplotlib
