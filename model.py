@@ -5,8 +5,8 @@ from IPython import get_ipython
 ####################
 
 nbIndividuals = 1000 # number of people in the graph | nombre d'individus dans le graphe
-initHealthy = 0.90 # percentage of healthy people at start | la proportion de personnes saines à l'intant initial (les autres sont porteurs asymptomatiques)
-initCured = 0.05
+initHealthy = 0.85 # percentage of healthy people at start | la proportion de personnes saines à l'intant initial (les autres sont porteurs asymptomatiques)
+initCured = 0.1
 
 
 # graph generation for exponential degrees distribution
@@ -20,10 +20,10 @@ extern_contact_proba = 0.3 # probabilty of meeting a person of a different house
 
 # graph generation with organization in households
 #-------------------------------------------------
-household_size = (2,6) # min and max size of an household (uniform distribution) | extremums de la taille d'un foyer
+household_size = (3,5) # min and max size of an household (uniform distribution) | extremums de la taille d'un foyer
 household_link = 1 # probability of contact between members of a household | proba de contact entre membres d'un foyer
 
-community_size = 500 # 2500 is good but a bit slow | number of households in the community | nombre de foyers dans une communauté
+community_size = 1000 # 2500 is good but a bit slow | number of households in the community | nombre de foyers dans une communauté
 community_link = 0.3 # probability of contact across households | proba de contact entre foyers
 av_deg_by_household = 400 # number of link from a household | nombre moyen de liens depuis un foyer
 
@@ -56,7 +56,7 @@ warningAfterSymptoms = False
 # |
 # à la reception d'une notif, l'utilisateur demande un test (avec une certaine proba)
 # si vrai, is attend les résultats en quarantaine, sinon il ne se met en quarantaine qu'aux résultats d'un test positif
-quarantineAfterNotification = True
+quarantineAfterNotification = False
 
 ###############
 # TEST PARAMS #
@@ -64,7 +64,7 @@ quarantineAfterNotification = True
 
 
 testWindow = (3, 10) # tests are only effective in a given window (time since infection) | les tests ne sont efficaces que dans une fenêtre de temps après infection
-daysUntilResult = 2 # attente pour l'obtention des résultats
+daysUntilResult = 5 # attente pour l'obtention des résultats
 pFalseNegative = 0.3 # prob. of false negative | proba d'avoir un faux négatif
 
 
@@ -89,7 +89,7 @@ pContaminationFarAsymp = 0.0005
 #[4] and [6]
 
 #and 0.98*0.001/(0.98*0.0005 + 0.02*0.25) = 0.1638 -> the proportion of contamiation that are not close contact (environnemental/ remote contact) estimated according to environnemental contamination in [4]
-
+#so the majority of infection (0.836) are suceptible to be noticed by the app
 
 #for Asymptomatics : 10*34*(0.02*0.05 + 0.98*0.0005) = 0.203 -> the number of person that will be infected by an asymptomatic infected
 
@@ -163,6 +163,7 @@ class Graph:
         self.nbQuarantine = 0
 
         self.nbTest = 0
+        
 
         # cumulative counters :
         self.nbQuarantineTotal = 0
@@ -493,6 +494,10 @@ def step(graph):
         if warningAfterSymptoms and random.random() < pSymptomsNotCovid:
             send_notification(graph, i)
     
+    
+
+    
+    
     # deleting oldest recorded day | suppression du plus vieux jour de l'historique
     for encounter in graph.encounters:
         encounter.pop(0)
@@ -535,6 +540,7 @@ def update_viz(graph):
     y_QuarantineNonI.append(graph.nbQuarantineNonI)
     y_QuarantineNonD.append(graph.nbQuarantineNonD)
     y_Test.append(graph.nbTest)
+    
     if y_QuarantineNonITotal != []:
         y_QuarantineNonITotal.append((graph.nbQuarantineNonI + nbIndividuals*y_QuarantineNonITotal[-1])/nbIndividuals)
         y_TestTotal.append((graph.nbTest + nbIndividuals*y_TestTotal[-1])/nbIndividuals)
@@ -609,9 +615,12 @@ def update_prob(app_utilisation, report_to_app, quarantine_when_notif):
         # update simulation
         step(graph)
         maxSymp = max(maxSymp, graph.nbS)
-
+        
+    print("Toal individuals:", nbIndividuals)
     print("Number of deceased:", graph.nbDead)
     print("Max. nb of sympomatic people:", maxSymp)
+    print("Test per people:", y_TestTotal[-1])
+    print("Final healthy:", y_S[-1])
     draw_viz()
     plt.show()
 
