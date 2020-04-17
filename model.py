@@ -392,8 +392,9 @@ def step(graph):
                     individual['daysQuarantine'] = daysQuarantine # Goes into quarantine if isn't already
                    
                 if random.random() < pReport: # Not everyone reports a positive test to the app
-        
                     send_notification(graph, i)
+                    
+                individual['app'] = False # Unsubscribe from the app in order to not consider new notifications
             
         individual['timeLeftForTestResult'] -= 1
         
