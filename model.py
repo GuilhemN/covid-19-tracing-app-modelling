@@ -56,7 +56,7 @@ warningAfterSymptoms = False
 # |
 # à la reception d'une notif, l'utilisateur demande un test (avec une certaine proba)
 # si vrai, is attend les résultats en quarantaine, sinon il ne se met en quarantaine qu'aux résultats d'un test positif
-quarantineAfterNotification = False
+quarantineAfterNotification = True
 
 ###############
 # TEST PARAMS #
