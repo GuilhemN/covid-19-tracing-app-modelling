@@ -174,6 +174,7 @@ class Individual:
         self.daysIncubation = daysIncubation
         self.timeSinceInfection = timeSinceInfection
         self.timeLeftForTestResult = timeLeftForTestResult
+        self.nbInfected = 0
 
     def in_state(self, state):
         return self.state == state
@@ -299,9 +300,11 @@ def contamination(graph, i, j, closeContact):
             
             if (random.random() < pContamination and (not graph.individuals[i].in_state(ASYMP))) or \
                 (random.random() < pContaminationAsymp and graph.individuals[i].in_state(ASYMP)):
+                # j becomes infected
                 if graph.individuals[i].in_state(ASYMP) or graph.individuals[i].in_state(PRESYMP):
                     graph.nbInfectedByASPS += 1
                 graph.individuals[j].timeSinceInfection = 0
+                graph.individuals[i].nbInfected += 1    # i has infected one more person
                 graph.nbHealthy -= 1
                 if random.random() < pAsympt:
                     graph.individuals[j].state = ASYMP
@@ -473,6 +476,8 @@ def step(graph):
 # # Display
 # Interactive model below (it takes about 10-15 sec to appear and to run a simulation)
 
+# ! uncomment for the notebook version :
+# %matplotlib notebook
 import matplotlib.pyplot as plt
 
 fig, ((ax, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=[15,10])
@@ -490,10 +495,25 @@ y_QuarantineNonD = []
 y_QuarantineNonITotal = []
 y_Test = []
 y_TestTotal = []
+y_R0 = []
 
 ax.set_ylim([0, nbIndividuals])
 
 def update_viz(graph):
+    if y_QuarantineNonITotal != []:
+        y_QuarantineNonITotal.append((graph.nbQuarantineNonI + nbIndividuals*y_QuarantineNonITotal[-1])/nbIndividuals)
+        y_TestTotal.append((graph.nbTest + nbIndividuals*y_TestTotal[-1])/nbIndividuals)
+    else:
+        y_QuarantineNonITotal.append(graph.nbQuarantineNonI/nbIndividuals)
+        y_TestTotal.append(graph.nbTest/nbIndividuals)
+    
+    # calculate R0
+    R0 = 0
+    for individual in graph.individuals:
+        R0 += individual.nbInfected
+    # divide by the nb of people that were once infected
+    R0 /= (graph.nbPS + graph.nbAS + graph.nbS + graph.nbCured)
+
     xs.append(len(xs))
     y_D.append(graph.nbDead)                          # number of deceased people
     y_MS.append(graph.nbS)                            # number of symptomatic people 
@@ -503,23 +523,22 @@ def update_viz(graph):
     y_G.append(graph.nbCured)                         # number of cured persons
     y_Q.append(graph.nbQuarantineTotal)               # number of people in quarantine
     y_InfectByASPS.append(graph.nbInfectedByASPS)     # number of people infected by asymp. + presymp. people
-    y_QuarantineNonI.append(graph.nbQuarantineNonI)
-    y_QuarantineNonD.append(graph.nbQuarantineNonD)
+    y_QuarantineNonI.append(graph.nbQuarantineNonI/nbIndividuals)
+    y_QuarantineNonD.append(graph.nbQuarantineNonD/nbIndividuals)
     y_Test.append(graph.nbTest)
+    y_R0.append(R0)
     
-    if y_QuarantineNonITotal != []:
-        y_QuarantineNonITotal.append((graph.nbQuarantineNonI + nbIndividuals*y_QuarantineNonITotal[-1])/nbIndividuals)
-        y_TestTotal.append((graph.nbTest + nbIndividuals*y_TestTotal[-1])/nbIndividuals)
-    else:
-        y_QuarantineNonITotal.append(graph.nbQuarantineNonI/nbIndividuals)
-        y_TestTotal.append(graph.nbTest/nbIndividuals)
     
 def draw_viz():
-    ax.cla()
-    labels = ["Deceased", "Asymptomatic","Presymptomatic", "Symptomatic", "Cured", "Healthy"]
-    ax.stackplot(xs, y_D, y_MAS,y_MPS, y_MS, y_G, y_S , labels=labels, edgecolor="black", colors=["darkred", "orange","yellow", "red", "dodgerblue", "mediumseagreen"])
+    ax.clear()
+    ax2.clear()
+    ax3.clear()
+    ax4.clear()
+
+    labels = [ "Symptomatic", "Deceased", "Asymptomatic","Presymptomatic", "Cured", "Healthy"]
+    ax.stackplot(xs, y_MS, y_D, y_MAS,y_MPS, y_G, y_S, labels=labels, edgecolor="black", colors=["red", "darkred", "orange","yellow", "dodgerblue", "mediumseagreen"])
     
-    labels2 = ["In quarantine and non infected", "In quarantine"]
+    labels2 = ["In quarantine and non infected (percentage)", "In quarantine (percentage)"]
     ax2.stackplot(xs, y_QuarantineNonI, y_QuarantineNonD, labels=labels2)
 
     #line, = ax3.plot(xs, y_InfectByASPS)
@@ -531,13 +550,15 @@ def draw_viz():
     line.set_label("Cumulative quarantine days of healthy people per person")
     line, = ax3.plot(xs, y_TestTotal)
     line.set_label("Cumulative number of tests per person")
+    line, = ax3.plot(xs, y_R0)
+    line.set_label("R0 (average number of infections caused by one infected)")
     
     line, = ax4.plot(xs, y_Test)
     line.set_label("Number of tests")
     
     
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=3)
-    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=2)
+    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=1)
     #ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=1)
     ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=2)
     ax4.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=2)
@@ -548,7 +569,11 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     global utilApp
     global pReport
     global pReadNotif
-    
+    global quarantineAfterNotification
+    global warningAfterSymptoms
+    global xs, y_D, y_MS, y_MPS, y_MAS, y_S, y_G, y_Q, y_InfectByASPS, y_R0
+    global y_QuarantineNonI, y_QuarantineNonITotal, y_QuarantineNonD, y_Test, y_TestTotal
+
     # TODO: clarify/simplify ?
     utilApp = app_use_rate
     pReport = report_to_app
@@ -577,6 +602,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     y_QuarantineNonD.clear()
     y_Test.clear()
     y_TestTotal.clear()
+    y_R0.clear()
     
     maxSymp = 0
     for step_ind in range(nbSteps):
@@ -586,9 +612,9 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
         step(graph)
         maxSymp = max(maxSymp, graph.nbS)
         
-    print("Toal individuals:", nbIndividuals)
+    print("Total individuals:", nbIndividuals)
     print("Number of deceased:", graph.nbDead)
-    print("Max. nb of sympomatic people:", maxSymp)
+    print("Max. nb of symptomatic people:", maxSymp)
     print("Test per people:", y_TestTotal[-1])
     print("Final healthy:", y_S[-1])
     draw_viz()
