@@ -36,7 +36,7 @@ av_deg_by_household = 400 # number of link from a household | nombre moyen de li
 ##############
 
 daysNotif = 14 # number of days the app checks back for contact notification | nombre de jours vérifiés par l'appli pour notifier un contact
-utilApp = 0.8 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
+utilApp = 0 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
 
 pDetection = 0.9 # prob. that the app detects a contact | proba que l'appli détecte un contact
 pReport = 0.9 # prob. that a user reports his symptoms | proba qu'un utilisateur alerte de ses symptômes
@@ -56,7 +56,7 @@ warningAfterSymptoms = False
 # |
 # à la reception d'une notif, l'utilisateur demande un test (avec une certaine proba)
 # si vrai, is attend les résultats en quarantaine, sinon il ne se met en quarantaine qu'aux résultats d'un test positif
-quarantineAfterNotification = True
+quarantineAfterNotification = False
 
 ###############
 # TEST PARAMS #
@@ -73,7 +73,7 @@ pFalseNegative = 0.15 # prob. of false negative | proba d'avoir un faux négatif
 ##############
 
 pQSymptoms = 0.9 # probability of going into quarantine when one has symptoms | proba de confinement lors de détection des symptômes
-quarantineFactor = 100 # reduction factor applied to the probabilities when one is in quarantine | réduction des probas de rencontre lors du confinement
+quarantineFactor = 100000 # reduction factor applied to the probabilities when one is in quarantine | réduction des probas de rencontre lors du confinement
 daysQuarantine = 14 # duration of the quarantine | durée de la quarantaine
 
 #################
@@ -215,7 +215,7 @@ def create_individuals(graph):
             graph.nbPS += 1
         
         # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
-        graph.individuals.append(Individual(s,  0, app, False, incub, -1, -1))
+        graph.individuals.append(Individual(s,  8, app, False, incub, -1, -1))
 
 
 def init_graph_exp(graph):
@@ -337,12 +337,18 @@ def test_individual(individual, graph):
     individual.lastTestResult = not (random.random() < pFalseNegative)
 
 
+nbNotif =0
+nbPersNotif = 0
 def send_notification(graph, i):
+    global nbNotif
+    global nbPersNotif
     """ Send notification to people who have been in touch with i | Envoi d'une notif aux personnes ayant été en contact avec i """
 
     if graph.individuals[i].sentNotification:
         return # notifications already sent
-  
+        
+    nbNotif+=1
+    
     graph.individuals[i].sentNotification = True
     for daysEncounter in graph.encounters[i]:
         # note: graph.encounter[i] is empty if i does not have the app so there is no need to have an additional test
@@ -352,7 +358,7 @@ def send_notification(graph, i):
                 test_individual(graph.individuals[contact], graph) # asks for a test
                 if quarantineAfterNotification: # in this case, the person waits for test results in quarantine
                     graph.individuals[contact].go_quarantine()
-
+                nbPersNotif+=1
 
 def step(graph):
     """ Step from a day to the next day | Passage au jour suivant du graphe """
@@ -390,31 +396,7 @@ def step(graph):
             else:
                 contamination(graph, i, j, False)
     
-    # handle new day | on passe au jour suivant
-    graph.nbQuarantine = 0
-    graph.nbQuarantineNonI = 0
-    graph.nbQuarantineNonD = 0
-    
-    for i in range(nbIndividuals):
-        if graph.individuals[i].in_state(DEAD):
-            continue
-            
-        graph.individuals[i].daysQuarantine -= 1
-        
-        # if there are still symptoms we don't end the quarantine
-        if (not graph.individuals[i].in_quarantine()) and graph.individuals[i].in_state(SYMP):
-            graph.individuals[i].daysQuarantine = 1
 
-        if graph.individuals[i].in_quarantine():
-            graph.nbQuarantineTotal += 1/nbIndividuals
-            # update if pre-symp is added
-            if not graph.individuals[i].is_infected():
-                graph.nbQuarantineNonI += 1
-            else:
-                graph.nbQuarantineNonD += 1
-
-        if graph.individuals[i].timeSinceInfection >= 0:
-            graph.individuals[i].timeSinceInfection += 1
 
     # update the states | on met à jour les états des individus
     for i, individual in enumerate(graph.individuals):
@@ -471,6 +453,34 @@ def step(graph):
         # if warningAfterSymptoms is True, each individual has a probability of sending a false notification due to symptoms that are misinterpreted as from COVID19
         if warningAfterSymptoms and random.random() < pSymptomsNotCovid:
             send_notification(graph, i)
+
+    # handle new day | on passe au jour suivant
+    graph.nbQuarantine = 0
+    graph.nbQuarantineNonI = 0
+    graph.nbQuarantineNonD = 0
+    
+    for i in range(nbIndividuals):
+        if graph.individuals[i].in_state(DEAD):
+            continue
+            
+        graph.individuals[i].daysQuarantine -= 1
+        
+        # if there are still symptoms we don't end the quarantine
+        if (not graph.individuals[i].in_quarantine()) and graph.individuals[i].in_state(SYMP):
+            graph.individuals[i].daysQuarantine = 1
+
+        if graph.individuals[i].in_quarantine():
+            graph.nbQuarantineTotal += 1/nbIndividuals
+            # update if pre-symp is added
+            if not graph.individuals[i].is_infected():
+                graph.nbQuarantineNonI += 1
+            else:
+                graph.nbQuarantineNonD += 1
+
+        if graph.individuals[i].timeSinceInfection >= 0:
+            graph.individuals[i].timeSinceInfection += 1
+
+
 
     # deleting oldest recorded day | suppression du plus vieux jour de l'historique
     for encounter in graph.encounters:
@@ -587,12 +597,12 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     quarantineAfterNotification = quarantine_after_notification
     nbSteps = 60
     
-    nbIndividuals = 100 # you may change the number of individuals for the exponential distribution graph here
+    nbIndividuals = 4000 # you may change the number of individuals for the exponential distribution graph here
 
     graph = Graph()
-    init_graph_household(graph) # default graph generation using households structure, as shown in the Results section
+    #init_graph_household(graph) # default graph generation using households structure, as shown in the Results section
     # uncomment this to get a graph with degrees following an exponential distribution
-    #init_graph_exp(graph)
+    init_graph_exp(graph)
     xs.clear()
     y_D.clear()
     y_MS.clear()
