@@ -530,16 +530,16 @@ def update_viz(graph):
     R0 /= (graph.nbPS + graph.nbAS + graph.nbS + graph.nbCured)
 
     xs.append(len(xs))
-    y_D.append(graph.nbDead)                          # number of deceased people
-    y_MS.append(graph.nbS)                            # number of symptomatic people 
-    y_MPS.append(graph.nbPS)                          # number of premptomatic people 
-    y_MAS.append(graph.nbAS)                          # number of asymptomatic people
-    y_S.append(graph.nbHealthy)                       # number of healthy people
-    y_G.append(graph.nbCured)                         # number of cured persons
+    y_D.append(graph.nbDead/nbIndividuals*100)                          # number of deceased people
+    y_MS.append(graph.nbS/nbIndividuals*100)                            # number of symptomatic people 
+    y_MPS.append(graph.nbPS/nbIndividuals*100)                          # number of premptomatic people 
+    y_MAS.append(graph.nbAS/nbIndividuals*100)                          # number of asymptomatic people
+    y_S.append(graph.nbHealthy/nbIndividuals*100)                       # number of healthy people
+    y_G.append(graph.nbCured/nbIndividuals*100)                         # number of cured persons
     y_Q.append(graph.nbQuarantineTotal)               # number of people in quarantine
     y_InfectByASPS.append(graph.nbInfectedByASPS)     # number of people infected by asymp. + presymp. people
-    y_QuarantineNonI.append(graph.nbQuarantineNonI/nbIndividuals)
-    y_QuarantineI.append(graph.nbQuarantineNonD/nbIndividuals)
+    y_QuarantineNonI.append(graph.nbQuarantineNonI/nbIndividuals*100)
+    y_QuarantineI.append(graph.nbQuarantineNonD/nbIndividuals*100)
     y_Test.append(graph.nbTest)
     y_R0.append(R0)
     
