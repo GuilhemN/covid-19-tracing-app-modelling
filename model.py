@@ -391,6 +391,9 @@ def step(graph):
     graph.nbQuarantineNonD = 0
     
     for i in range(nbIndividuals):
+        if graph.individuals[i].in_state(DEAD):
+            continue
+            
         graph.individuals[i].daysQuarantine -= 1
         
         # if there are still symptoms we don't end the quarantine
@@ -399,11 +402,11 @@ def step(graph):
 
         if graph.individuals[i].in_quarantine():
             graph.nbQuarantineTotal += 1/nbIndividuals
-            if not graph.individuals[i].in_state(DEAD):
-                graph.nbQuarantineNonD += 1
             # update if pre-symp is added
             if not graph.individuals[i].is_infected():
                 graph.nbQuarantineNonI += 1
+            else:
+                graph.nbQuarantineNonD += 1
 
         if graph.individuals[i].timeSinceInfection >= 0:
             graph.individuals[i].timeSinceInfection += 1
