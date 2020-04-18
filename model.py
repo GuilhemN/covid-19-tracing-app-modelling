@@ -494,7 +494,7 @@ y_G = []
 y_Q = []
 y_InfectByASPS = []
 y_QuarantineNonI = []
-y_QuarantineNonD = []
+y_QuarantineI = []
 y_QuarantineNonITotal = []
 y_Test = []
 y_TestTotal = []
@@ -527,7 +527,7 @@ def update_viz(graph):
     y_Q.append(graph.nbQuarantineTotal)               # number of people in quarantine
     y_InfectByASPS.append(graph.nbInfectedByASPS)     # number of people infected by asymp. + presymp. people
     y_QuarantineNonI.append(graph.nbQuarantineNonI/nbIndividuals)
-    y_QuarantineNonD.append(graph.nbQuarantineNonD/nbIndividuals)
+    y_QuarantineI.append(graph.nbQuarantineNonD/nbIndividuals)
     y_Test.append(graph.nbTest)
     y_R0.append(R0)
     
@@ -541,8 +541,8 @@ def draw_viz():
     labels = [ "Symptomatic", "Deceased", "Asymptomatic","Presymptomatic", "Cured", "Healthy"]
     ax.stackplot(xs, y_MS, y_D, y_MAS,y_MPS, y_G, y_S, labels=labels, edgecolor="black", colors=["red", "darkred", "orange","yellow", "dodgerblue", "mediumseagreen"])
     
-    labels2 = ["In quarantine and non infected (percentage)", "In quarantine (percentage)"]
-    ax2.stackplot(xs, y_QuarantineNonI, y_QuarantineNonD, labels=labels2)
+    labels2 = ["In quarantine and non infected (percentage)", "In quarantine and infected (percentage)"]
+    ax2.stackplot(xs, y_QuarantineNonI, y_QuarantineI, labels=labels2)
 
     #line, = ax3.plot(xs, y_InfectByASPS)
     #line.set_label("Total infections by asympt.")
@@ -575,7 +575,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     global quarantineAfterNotification
     global warningAfterSymptoms
     global xs, y_D, y_MS, y_MPS, y_MAS, y_S, y_G, y_Q, y_InfectByASPS, y_R0
-    global y_QuarantineNonI, y_QuarantineNonITotal, y_QuarantineNonD, y_Test, y_TestTotal
+    global y_QuarantineNonI, y_QuarantineNonITotal, y_QuarantineI, y_Test, y_TestTotal
 
     # TODO: clarify/simplify ?
     utilApp = app_use_rate
@@ -602,7 +602,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     y_InfectByASPS.clear()
     y_QuarantineNonI.clear()
     y_QuarantineNonITotal.clear()
-    y_QuarantineNonD.clear()
+    y_QuarantineI.clear()
     y_Test.clear()
     y_TestTotal.clear()
     y_R0.clear()
