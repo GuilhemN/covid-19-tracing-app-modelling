@@ -434,6 +434,7 @@ def step(graph):
                 
             if individual.lastTestResult == True:
                 individual.go_quarantine()
+                individual.timeLeftForTestResult = 1e10 # Persons tested positive are not tested again
                    
                 if random.random() < pReport: # not everyone reports a positive test to the app
 
