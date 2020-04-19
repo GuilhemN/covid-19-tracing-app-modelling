@@ -65,6 +65,7 @@ quarantineAfterNotification = False
 testWindow = (3, 10) # tests are only effective in a given window (time since infection) | les tests ne sont efficaces que dans une fenêtre de temps après infection
 daysUntilResult = 5 # time to wait for test results | attente pour l'obtention des résultats
 pFalseNegative = 0.3 # prob. of false negative | proba d'avoir un faux négatif
+daysBetweenTests = 14
 
 ##############
 # QUARANTINE #
@@ -173,6 +174,7 @@ class Individual:
         self.sentNotification = sentNotification
         self.daysIncubation = daysIncubation
         self.timeSinceInfection = timeSinceInfection
+        self.timeSinceLastTest = 1e10 # we don't want to test people too often
         self.timeLeftForTestResult = timeLeftForTestResult
         self.nbInfected = 0
 
@@ -319,7 +321,12 @@ def test_individual(individual, graph):
     # if there is a test incoming, the person is not tested again
     if individual.timeLeftForTestResult >= 0 or individual.in_state(DEAD):
         return
-        
+    
+    # The person was tested not long ago
+    if individual.timeSinceLastTest < daysBetweenTests:
+        return
+    
+    individual.timeSinceLastTest = 0
     graph.nbTest +=1
     individual.timeLeftForTestResult = daysUntilResult
     if individual.has_no_covid():
@@ -363,6 +370,7 @@ def step(graph):
     for i in range(nbIndividuals):
 
         graph.individuals[i].daysIncubation -= 1
+        graph.individuals[i].timeSinceLastTest += 1
         
         for edge in graph.adj[i]:
             j = edge['node']
