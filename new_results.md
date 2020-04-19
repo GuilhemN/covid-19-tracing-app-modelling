@@ -16,8 +16,8 @@ Moreover the windows of validity for testing will really limit the effectiveness
 succeed in having test results available in the day, because of the 3-10 days windows validity we will not be able to
 identify isolated presymptomatic cases that just got infected. Example of curve comparison with and without the window validity :
 
-Even with better screening (2 days of delay and 15% of false negative), we can see that the curve of the test request appears earlier, but the
-quarantine curve isn't too much. This can explained by the fact that a close contact has a probability of only about 2% of chance of causing a
+Even with better screening (2 days of delay and 15% of false negative), we can see that the curve of the test requests appears earlier, but the
+quarantine curve doesn't change much. This can explained by the fact that a close contact has a probability of only about 2% of chance of causing a
 contamination (according to a WHO report in China). So this leads to high requesting of tests from persons that only have low chance of being
 infected.
 
