@@ -36,7 +36,7 @@ av_deg_by_household = 400 # number of link from a household | nombre moyen de li
 ##############
 
 daysNotif = 14 # number of days the app checks back for contact notification | nombre de jours vérifiés par l'appli pour notifier un contact
-utilApp = 0 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
+utilApp = 1 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
 
 pDetection = 0.9 # prob. that the app detects a contact | proba que l'appli détecte un contact
 pReport = 0.9 # prob. that a user reports his symptoms | proba qu'un utilisateur alerte de ses symptômes
@@ -64,8 +64,8 @@ quarantineAfterNotification = False
 
 testWindow = (3, 10) # tests are only effective in a given window (time since infection) | les tests ne sont efficaces que dans une fenêtre de temps après infection
 
-daysUntilResult = 2 # attente pour l'obtention des résultats
-pFalseNegative = 0.15 # prob. of false negative | proba d'avoir un faux négatif
+daysUntilResult = 5 # attente pour l'obtention des résultats
+pFalseNegative = 0.3 # prob. of false negative | proba d'avoir un faux négatif
 
 
 ##############
@@ -73,7 +73,7 @@ pFalseNegative = 0.15 # prob. of false negative | proba d'avoir un faux négatif
 ##############
 
 pQSymptoms = 0.9 # probability of going into quarantine when one has symptoms | proba de confinement lors de détection des symptômes
-quarantineFactor = 100000 # reduction factor applied to the probabilities when one is in quarantine | réduction des probas de rencontre lors du confinement
+quarantineFactor = 100 # reduction factor applied to the probabilities when one is in quarantine | réduction des probas de rencontre lors du confinement
 daysQuarantine = 14 # duration of the quarantine | durée de la quarantaine
 
 #################
@@ -82,13 +82,14 @@ daysQuarantine = 14 # duration of the quarantine | durée de la quarantaine
 # !! Probabilities are given for 1 step of the process, thus overall prob. follows a geometric law for which expected values have been calculated
 
 # paramters estimated -> a limit of the model
-pCloseContact = 0.03 # prob. that a contact is a close contact (those detected by the app) | proba qu'un contact soit rapproché (ceux détectés par l'appli)
-pContaminationCloseContact = 0.25 # prob. of contamination after close contact with an infected person | proba de contamination après contact rapproché avec qqn d'infecté
-pContaminationCloseContactAsymp = 0.05
+pCloseContact = 0.375 # prob. that a contact is a close contact (those detected by the app) | proba qu'un contact soit rapproché (ceux détectés par l'appli)
+pContaminationCloseContact = 0.02 # prob. of contamination after close contact with an infected person | proba de contamination après contact rapproché avec qqn d'infecté
+#according to https://www.who.int/docs/default-source/coronaviruse/who-china-joint-mission-on-covid-19-final-report.pdf -> around 1 to 5% of close contact lead to virus transmission
+pContaminationCloseContactAsymp = 0.006
 # infectiousness of asymptomatic people appears to be very low according to [4] and "Temporal dynamics in viral shedding and transmissibility of COVID-19" [6]
 
 pContaminationFar = 0.001 # prob. of contamination upon non close contact (environmental or short contact) | proba de contamination par contact environnemental ou bref
-pContaminationFarAsymp = 0.0005
+pContaminationFarAsymp = 0.0003
 
 # we took R0=2 estimate from [4] and : 34 contacts/day, an average time of infectiousness of 10 days (pre symptomatic + begining of symptoms period)
 # this gives (0.6*(0.03*0.25+0.97*0.001) + 0.4*(0.03*0.05+0.97*0.0005))*34*10 = 1.998 persons infected in average by an infected
@@ -215,7 +216,7 @@ def create_individuals(graph):
             graph.nbPS += 1
         
         # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
-        graph.individuals.append(Individual(s,  8, app, False, incub, -1, -1))
+        graph.individuals.append(Individual(s,  0, app, False, incub, -1, -1))
 
 
 def init_graph_exp(graph):
@@ -600,9 +601,9 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     nbIndividuals = 4000 # you may change the number of individuals for the exponential distribution graph here
 
     graph = Graph()
-    #init_graph_household(graph) # default graph generation using households structure, as shown in the Results section
+    init_graph_household(graph) # default graph generation using households structure, as shown in the Results section
     # uncomment this to get a graph with degrees following an exponential distribution
-    init_graph_exp(graph)
+    #init_graph_exp(graph)
     xs.clear()
     y_D.clear()
     y_MS.clear()
