@@ -1,0 +1,52 @@
+# Results of the model
+
+## Influence of the time for tests results
+
+We use test parameters to model the curent test abilities in France : 
+ * 5 day for test results
+ * A 3 to 10 days validity window
+ * 30% of false positive
+
+Even with a great adhesion of the population (80%) the change in the epidemic spread isn't even visible because of the test delay. 
+Indeed the caracteristic time is 2*5=10 days between the suspiction of the first infected and the quarantine of the person notified 
+and infected by the first. This is more than the incubation time (~5 days) and around the time of infectiousness of asymptomatics.
+In fact, the decision of quarantine arrives after the symptoms of the newly infected person or even after he's cured.
+
+Moreover the windows of validity for test will really limit the effectiveness of testing. Even if we 
+succeed in having test results available in the day, because of the 3-10 days windows validity we will not be able to
+identify an isolate presymptomatic cases that just got infected. Example of curve comparaison with and without the window validity :
+
+Even with better test (2 days of delay and 15% of false positive), we see that the curve of the test request is earlier, but the 
+quarantine curve isn't too much. This is explained by the fact that a close contact only has around 2% of chance of causing a 
+contamination (according to a WHO report in China). So this lead to high request of test of person that only have low chance of being 
+infected.
+
+We can imagine a more nuanced system to determine if we need a test: the number of notification received, the presumed infectiousness of the infected
+at the time of the contact etc. This could enable a more precise tracking of the presumed risk of individuals.
+
+## Quarantine after notification: 
+
+It provide a more agressive response against the epidemic and prove to be effective even with the curent test abilities.
+Its effectiveness is even better with better tests without causing more quarantine days.
+This policy really uses the ability to get swift testing to get an earlier and more efficient quarantine.
+However, it also comes with high social cost because if means a volontary quarantine during the waiting time of results. 
+Because of the great number of contact in a day, it means that about all the user of the app quarantined after the first spread in the population.
+This high social cost could lead to a lesser adoption of the app by the population. 
+
+Nonetheless if test results can be available quickly, both the effectiveness of this policy and the social cost are improved.
+
+
+## Warning after symptoms
+
+The proportion of notification sent because of symptoms unrelated to COVID is difficult to estimate.
+However if we manage to keep it fairly low ( < 0.5% of chance of no covid symptoms per person per day) 
+this can provide an effective work around of test delays.
+
+## Influence of the proportion of users
+
+In the case of better tests and the application of "Quarantine after notification" policy, we plot the influence on the proportion of 
+user on several key values.
+
+We see that the use of the app will not reduce by much the maximal pressure on healthcare system (max. symptomatic) but will
+significantly curb the total spread of the app.
+By doubling the average day in quarantine per person, it triples the final proportion of healthy persons.
