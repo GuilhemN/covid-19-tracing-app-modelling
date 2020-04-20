@@ -15,6 +15,11 @@ In fact, the decision of quarantine arrives after the symptoms of the newly infe
 Moreover the windows of validity for testing will really limit the effectiveness of testing. Even if we
 succeed in having test results available in the day, because of the 3-10 days windows validity we will not be able to
 identify isolated presymptomatic cases that just got infected. Example of curve comparison with and without the window validity :
+* with the window validity:
+  <img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/viz_80app_q_nowindow.png" alt="with window validity" style="width: 500px;"/>
+* without it:
+  <img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/viz_80app_q.png" alt="without window validity" style="width: 500px;"/>
+
 
 Even with better screening (2 days of delay and 15% of false negative), we can see that the curve of the test requests appears earlier, but the
 quarantine curve doesn't change much. This can explained by the fact that a close contact has a probability of only about 2% of chance of causing a
@@ -25,6 +30,8 @@ We may imagine a more nuanced system to determine if we need a test: the number 
 at the time of the contact etc. This could enable a more precise tracking of the presumed risk of individuals.
 
 ## Quarantine after notification:
+
+<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/viz_80app_q.png" alt="quarantine after notification" style="width: 500px;"/>
 
 It provides a more aggressive response against the epidemic and prove to be effective even with the current test abilities.
 Its effectiveness is even better with better tests without causing more quarantine days.
@@ -37,6 +44,8 @@ Nonetheless if test results can be available quickly, both the effectiveness of 
 
 
 ## Warning after symptoms
+
+<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/viz_80app_w.png" alt="warning after symptoms" style="width: 500px;"/>
 
 The proportion of notifications sent because of symptoms unrelated to COVID is difficult to estimate.
 However if we manage to keep it fairly low ( < 0.5% of chance of no covid symptoms per person per day)
