@@ -48,7 +48,7 @@ pSymptomsNotCovid = 0.005 # every day, everyone sends a notification with prob. 
 # POLICIES #
 ############
 
-# people warn the app immediately after having symptoms | on prévient l'application directement après avoir développé les symptômes 
+# people warn the app immediately after having symptoms | on prévient l'application directement après avoir développé les symptômes
 warningAfterSymptoms = False
 
 # upon notification, an individual asks for a test (with some prob.)
@@ -122,7 +122,7 @@ pIStoD = 0.003 # probability of dying when symptomatic | proba de décès d'une 
 
 # average time with symptoms : 1/(0.07+0.003) = 13.7 days : plausible according to [4]
 # death rate when symptoms : 0.003/0.07 = 4.3% : plausible in France according to estimate of 1.6M cases with symptoms
-# and 6 000 deaths the 3 April 
+# and 6 000 deaths the 3 April
 # https://www.mgfrance.org/publication/communiquepresse/2525-enquete-mg-france-plus-d-un-million-et-demi-de-personnes-prises-en-charge-par-leur-medecin-generaliste-pour-le-covid-19-entre-le-17-mars-et-le-3-avril
 
 
@@ -147,7 +147,7 @@ DEAD = 5
 
 class Graph:
     """ Object holding the representation of the graph and some metrics """
-    
+
     def __init__(self):
         self.individuals = []
         self.adj = []
@@ -172,7 +172,7 @@ class Graph:
 
 class Individual:
     """ Object holding the representation of an individual """
-    
+
     def __init__(self, state, daysQuarantine, app, sentNotification, daysIncubation, timeSinceInfection, timeLeftForTestResult):
         self.state = state
         self.daysQuarantine = daysQuarantine
@@ -189,7 +189,7 @@ class Individual:
 
     def is_infected(self):
         return self.state in [PRESYMP, ASYMP, SYMP]
-    
+
     def has_no_covid(self):
         return self.state in [HEALTHY, CURED]
 
@@ -219,14 +219,14 @@ def create_individuals(graph):
         else:
             incub = round(np.random.lognormal(incubMeanlog, incubSdlog))
             graph.nbPS += 1
-        
+
         # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
         graph.individuals.append(Individual(s,  0, app, False, incub, -1, -1))
 
 
 def init_graph_exp(graph):
     """ Graph initialisation based on exponential ditribution of degrees """
-    
+
     create_individuals(graph)
 
     # affecting degrees to vertices
@@ -255,8 +255,8 @@ def init_graph_exp(graph):
 
 def init_graph_household(graph):
     """ Graph generation based on households organisation """
-    
-    global nbIndividuals   
+
+    global nbIndividuals
 
     # creation of the households
     graph.adj = []
@@ -280,7 +280,7 @@ def init_graph_household(graph):
         graph.adj[x2].append({"node": x1, "proba": community_link})
 
     nbIndividuals = len(graph.adj)
-    
+
     create_individuals(graph)
 
     graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
@@ -298,14 +298,14 @@ def contamination(graph, i, j, closeContact):
     # i is the infected individual
     if graph.individuals[i].is_infected():
         if graph.individuals[j].in_state(HEALTHY):
-            
+
             if closeContact:
                 pContamination = pContaminationCloseContact
                 pContaminationAsymp = pContaminationCloseContactAsymp
             else:
                 pContamination = pContaminationFar
                 pContaminationAsymp = pContaminationFarAsymp
-            
+
             if (random.random() < pContamination and (not graph.individuals[i].in_state(ASYMP))) or \
                 (random.random() < pContaminationAsymp and graph.individuals[i].in_state(ASYMP)):
                 # j becomes infected
@@ -321,17 +321,17 @@ def contamination(graph, i, j, closeContact):
                     graph.individuals[j].state = PRESYMP
                     graph.individuals[j].daysIncubation = round(np.random.lognormal(incubMeanlog, incubSdlog))
                     graph.nbPS += 1
-            
+
 
 def test_individual(individual, graph):
     # if there is a test incoming, the person is not tested again
     if individual.timeLeftForTestResult >= 0 or individual.in_state(DEAD):
         return
-    
+
     # The person was tested not long ago
     if individual.timeSinceLastTest < daysBetweenTests:
         return
-    
+
     individual.timeSinceLastTest = 0
     graph.nbTest +=1
     individual.timeLeftForTestResult = daysUntilResult
@@ -342,7 +342,7 @@ def test_individual(individual, graph):
     if individual.timeSinceInfection < testWindow[0] or individual.timeSinceInfection > testWindow[1]:
         individual.lastTestResult = False # not in the detection window, the test fails
         return
-    
+
     # otherwise the person is ill
     # the test result depends whether we have a false negative or not
     individual.lastTestResult = not (random.random() < pFalseNegative)
@@ -357,9 +357,9 @@ def send_notification(graph, i):
 
     if graph.individuals[i].sentNotification:
         return # notifications already sent
-        
+
     nbNotif+=1
-    
+
     graph.individuals[i].sentNotification = True
     for daysEncounter in graph.encounters[i]:
         # note: graph.encounter[i] is empty if i does not have the app so there is no need to have an additional test
@@ -383,55 +383,55 @@ def step(graph):
 
         graph.individuals[i].daysIncubation -= 1
         graph.individuals[i].timeSinceLastTest += 1
-        
+
         for edge in graph.adj[i]:
             j = edge['node']
             if j < i:
                 continue # only check one way of the edge | on ne regarde qu'un sens de chaque arête
-            
+
             factor = 1
             if graph.individuals[i].in_quarantine():
                 factor *= quarantineFactor
             if graph.individuals[j].in_quarantine():
                 factor *= quarantineFactor
-            
+
             # if i or j are in quarantine, reduce the probability that they meet | Si i et/ou j sont confinés, réduction de leur proba de rencontre
             if random.random() > edge['proba'] / factor:
                 continue # no encounter | pas de rencontre
-            
+
             if random.random() < pCloseContact: # if this is a close contact
                 # if i and j have the app, we save their encounter | Si i et j ont l'appli, on note la rencontre
-                if graph.individuals[i].app and graph.individuals[j].app and random.random() < pDetection: 
+                if graph.individuals[i].app and graph.individuals[j].app and random.random() < pDetection:
                     graph.encounters[i][-1].append(j)
                     graph.encounters[j][-1].append(i)
                 contamination(graph, i, j, True)
             else:
                 contamination(graph, i, j, False)
-    
+
 
 
     # update the states | on met à jour les états des individus
     for i, individual in enumerate(graph.individuals):
-        
+
         # TODO (?) : separate function
         ## TESTS MANAGEMENT
         if individual.timeLeftForTestResult == 0:
-  
+
             if individual.in_quarantine() and individual.lastTestResult == False: # is in quarantine and gets a negative test
                 individual.daysQuarantine = 0 # end of quarantine
-                
+
             if individual.lastTestResult == True:
                 individual.go_quarantine()
                 individual.timeLeftForTestResult = 1e10 # Persons tested positive are not tested again
-                   
+
                 if random.random() < pReport: # not everyone reports a positive test to the app
 
                     send_notification(graph, i)
-                    
+
                 individual.app = False # unsubscribe from the app in order to not consider new notifications
-            
+
         individual.timeLeftForTestResult -= 1
-        
+
         if individual.in_state(ASYMP):
             if random.random() < pAtoG:
                 graph.nbAS -= 1
@@ -448,9 +448,9 @@ def step(graph):
                     send_notification(graph,i)
                 if random.random() < pQSymptoms: # go into quarantine if symptoms appear | mise en confinement à la détection des symptômes
                     individual.daysQuarantine = daysQuarantine
-                    
+
                 test_individual(individual, graph)
-                
+
         elif individual.in_state(SYMP):
             action = random.random()
             if action < pIStoC:
@@ -461,7 +461,7 @@ def step(graph):
                 graph.nbS -= 1
                 graph.nbDead += 1
                 individual.state = DEAD
-                
+
         # some people send notif even though they are not actually infected by covid | certaines personnes envoient une notif alors qu'elles n'ont pas le covid
         # if warningAfterSymptoms is True, each individual has a probability of sending a false notification due to symptoms that are misinterpreted as from COVID19
         if warningAfterSymptoms and random.random() < pSymptomsNotCovid:
@@ -471,13 +471,13 @@ def step(graph):
     graph.nbQuarantine = 0
     graph.nbQuarantineNonI = 0
     graph.nbQuarantineNonD = 0
-    
+
     for i in range(nbIndividuals):
         if graph.individuals[i].in_state(DEAD):
             continue
-            
+
         graph.individuals[i].daysQuarantine -= 1
-        
+
         # if there are still symptoms we don't end the quarantine
         if (not graph.individuals[i].in_quarantine()) and graph.individuals[i].in_state(SYMP):
             graph.individuals[i].daysQuarantine = 1
@@ -485,7 +485,7 @@ def step(graph):
         if graph.individuals[i].in_quarantine():
             graph.nbQuarantineTotal += 1/nbIndividuals
             # update if pre-symp is added
-            if graph.individuals[i].app: #####to change !!
+            if not graph.individuals[i].is_infected():
                 graph.nbQuarantineNonI += 1
             else:
                 graph.nbQuarantineNonD += 1
@@ -534,7 +534,7 @@ def update_viz(graph):
     else:
         y_QuarantineNonITotal.append(graph.nbQuarantineNonI/nbIndividuals)
         y_TestTotal.append(graph.nbTest/nbIndividuals)
-    
+
     # calculate R0
     R0 = 0
     for individual in graph.individuals:
@@ -544,8 +544,8 @@ def update_viz(graph):
 
     xs.append(len(xs))
     y_D.append(graph.nbDead/nbIndividuals*100)                          # number of deceased people
-    y_MS.append(graph.nbS/nbIndividuals*100)                            # number of symptomatic people 
-    y_MPS.append(graph.nbPS/nbIndividuals*100)                          # number of premptomatic people 
+    y_MS.append(graph.nbS/nbIndividuals*100)                            # number of symptomatic people
+    y_MPS.append(graph.nbPS/nbIndividuals*100)                          # number of premptomatic people
     y_MAS.append(graph.nbAS/nbIndividuals*100)                          # number of asymptomatic people
     y_S.append(graph.nbHealthy/nbIndividuals*100)                       # number of healthy people
     y_G.append(graph.nbCured/nbIndividuals*100)                         # number of cured persons
@@ -555,8 +555,8 @@ def update_viz(graph):
     y_QuarantineI.append(graph.nbQuarantineNonD/nbIndividuals*100)
     y_Test.append(graph.nbTest)
     y_R0.append(R0)
-    
-    
+
+
 def draw_viz():
     ax.clear()
     ax2.clear()
@@ -565,13 +565,13 @@ def draw_viz():
 
     labels = [ "Symptomatic", "Deceased", "Asymptomatic","Presymptomatic", "Cured", "Healthy"]
     ax.stackplot(xs, y_MS, y_D, y_MAS,y_MPS, y_G, y_S, labels=labels, edgecolor="black", colors=["red", "darkred", "orange","yellow", "dodgerblue", "mediumseagreen"])
-    
+
     labels2 = ["In quarantine and non infected (percentage)", "In quarantine and infected (percentage)"]
     ax2.stackplot(xs, y_QuarantineNonI, y_QuarantineI, labels=labels2)
 
     #line, = ax3.plot(xs, y_InfectByASPS)
     #line.set_label("Total infections by asympt.")
-    
+
     line, = ax3.plot(xs, y_Q)
     line.set_label("Cumulative quarantine days per person")
     line, = ax3.plot(xs, y_QuarantineNonITotal)
@@ -580,11 +580,11 @@ def draw_viz():
     line.set_label("Cumulative number of tests per person")
     line, = ax3.plot(xs, y_R0)
     line.set_label("R0 (average number of infections caused by one infected)")
-    
+
     line, = ax4.plot(xs, y_Test)
     line.set_label("Number of tests")
-    
-    
+
+
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=3)
     ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=1)
     #ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=1)
@@ -609,7 +609,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     warningAfterSymptoms = warning_after_symptoms
     quarantineAfterNotification = quarantine_after_notification
     nbSteps = 60
-    
+
     nbIndividuals = 4000 # you may change the number of individuals for the exponential distribution graph here
 
     graph = Graph()
@@ -631,7 +631,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     y_Test.clear()
     y_TestTotal.clear()
     y_R0.clear()
-    
+
     maxSymp = 0
     for step_ind in range(nbSteps):
         # update matplotlib
@@ -639,7 +639,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
         # update simulation
         step(graph)
         maxSymp = max(maxSymp, graph.nbS)
-        
+
     # print("Total individuals:", nbIndividuals)
     # print("Number of deceased:", graph.nbDead)
     # print("Max. nb of symptomatic people:", maxSymp)
@@ -652,7 +652,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
 
 
 update_prob(utilApp, pReport, pReadNotif, warningAfterSymptoms, quarantineAfterNotification)
-    
+
 
 # interact_manual(update_prob, \
 #                 app_use_rate = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value=utilApp), \
