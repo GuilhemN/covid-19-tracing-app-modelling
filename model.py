@@ -36,7 +36,7 @@ av_deg_by_household = 400 # number of link from a household | nombre moyen de li
 ##############
 
 daysNotif = 14 # number of days the app checks back for contact notification | nombre de jours vérifiés par l'appli pour notifier un contact
-utilApp = 1 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
+utilApp = 0.8 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
 
 pDetection = 0.9 # prob. that the app detects a contact | proba que l'appli détecte un contact
 pReport = 0.9 # prob. that a user reports his symptoms | proba qu'un utilisateur alerte de ses symptômes
@@ -56,17 +56,16 @@ warningAfterSymptoms = False
 # |
 # à la reception d'une notif, l'utilisateur demande un test (avec une certaine proba)
 # si vrai, is attend les résultats en quarantaine, sinon il ne se met en quarantaine qu'aux résultats d'un test positif
-quarantineAfterNotification = False
-
+quarantineAfterNotification = True
 ###############
 # TEST PARAMS #
 ###############
 
 testWindow = (3, 10) # tests are only effective in a given window (time since infection) | les tests ne sont efficaces que dans une fenêtre de temps après infection
 
-daysUntilResult = 5 # attente pour l'obtention des résultats
-pFalseNegative = 0.3 # prob. of false negative | proba d'avoir un faux négatif
-daysBetweenTests = 14
+daysUntilResult = 2 # attente pour l'obtention des résultats
+pFalseNegative = 0.15 # prob. of false negative | proba d'avoir un faux négatif
+daysBetweenTests = 0
 
 
 ##############
@@ -93,15 +92,19 @@ pContaminationFar = 0.001 # prob. of contamination upon non close contact (envir
 pContaminationFarAsymp = 0.0003
 
 # we took R0=2 estimate from [4] and : 34 contacts/day, an average time of infectiousness of 10 days (pre symptomatic + begining of symptoms period)
-# this gives (0.6*(0.03*0.25+0.97*0.001) + 0.4*(0.03*0.05+0.97*0.0005))*34*10 = 1.998 persons infected in average by an infected
+
+#average number of infected by symptomatic : (0.375*0.02+0.625*0.001)*34*10 = 2.76
+#average number of infected by asymptomatic : (0.375*0.006+0.625*0.0003)*34*10 = 0.83
+
+# this gives 0.6*2.76 + 0.4*0.83 = 1.99 persons infected in average by an infected
 # this is plausible given the estimate of R0 and the fact that asymptomatic contamination appears to be minor
 # [4] and [6]
 
-# and 0.98*0.001/(0.98*0.001 + 0.02*0.25) = 0.1638 -> the proportion of contaminations which are not due to close contact (environmental / short contact) (contaminations by asymptomatic people are neglected) estimated according to environmental contamination estimate in [4]
-# thus most infections (0.836) are susceptible to be noticed by the app
+# and (0.6*0.625*0.001 + 0.4*0.625*0.0003)*34*10 / R0 = 0.0765 -> the proportion of contaminations which are not due to close contact (environmental / short contact) (contaminations by asymptomatic people are neglected) estimated according to environmental contamination estimate in [4]
+# thus most infections (92%) are susceptible to be noticed by the app
 
-# 10*34*(0.02*0.05 + 0.98*0.0005) = 0.203 -> average total number of people infected by an asymptomatic individual
-# -> the proportion of contaminations by asympt. people is : 0.4*0.203/(0.6*2.03 + 0.4*0.203) = 0.06 plausible according to [4]
+# -> the proportion of contaminations by asympt. people is : 0.4*0.83/(0.6*2.76 + 0.4*0.0.83) = 0.17 plausible according to the presumed low infectiosity shown in [4], but this is a conservative estimate (not the 0.06 given by this paper) given the high uncertainty around the results
+
 
 pAsympt = 0.4 # probability of being asymptomatic when infected | proba qu'une personne infectée soit asymptomatique
 # according to [4] and Diamond Princess estimates
@@ -482,7 +485,7 @@ def step(graph):
         if graph.individuals[i].in_quarantine():
             graph.nbQuarantineTotal += 1/nbIndividuals
             # update if pre-symp is added
-            if not graph.individuals[i].is_infected():
+            if graph.individuals[i].app: #####to change !!
                 graph.nbQuarantineNonI += 1
             else:
                 graph.nbQuarantineNonD += 1
@@ -637,17 +640,19 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
         step(graph)
         maxSymp = max(maxSymp, graph.nbS)
         
-    print("Total individuals:", nbIndividuals)
-    print("Number of deceased:", graph.nbDead)
-    print("Max. nb of symptomatic people:", maxSymp)
-    print("Test per people:", y_TestTotal[-1])
-    print("Final healthy:", y_S[-1])
+    # print("Total individuals:", nbIndividuals)
+    # print("Number of deceased:", graph.nbDead)
+    # print("Max. nb of symptomatic people:", maxSymp)
+    # print("Test per people:", y_TestTotal[-1])
+    # print("Final healthy:", y_S[-1])
+    print(maxSymp/nbIndividuals,",", y_S[-1],",", y_Q[-1], ",", y_TestTotal[-1])
     draw_viz()
     plt.show()
 
 
 
 update_prob(utilApp, pReport, pReadNotif, warningAfterSymptoms, quarantineAfterNotification)
+    
 
 # interact_manual(update_prob, \
 #                 app_use_rate = widgets.FloatSlider(min=0.0, max=1.0, step=0.01, value=utilApp), \
