@@ -24,7 +24,7 @@ extern_contact_proba = 0.3 # probabilty of meeting a person of a different house
 household_size = (3, 5) # min and max size of an household (uniform distribution) | extremums de la taille d'un foyer
 household_link = 1 # probability of contact between members of a household | proba de contact entre membres d'un foyer
 
-community_size = 1000 # 2500 is good but a bit slow | number of households in the community | nombre de foyers dans une communauté
+number_of_households = 1000 # 2500 is good but a bit slow | number of households in the community | nombre de foyers dans une communauté
 community_link = 0.3 # probability of contact across households | proba de contact entre foyers
 av_deg_by_household = 400 # number of link from a household | nombre moyen de liens depuis un foyer
 
@@ -274,23 +274,21 @@ def init_graph_household(graph):
     # creation of the households
     graph.adj = []
 
-    for i in range(community_size):
+    for i in range(number_of_households):
         size = random.randint(household_size[0], household_size[1])
         nb = len(graph.adj)
         for i in range(nb, nb+size):
-            vois = []
+            household = []
             for j in range(nb, nb+size):
                 if (i != j):
-                    vois.append({"node": j, "proba": household_link})
-            graph.adj.append(vois)
+                    household.append({"node": j, "proba": household_link})
+            graph.adj.append(household)
 
     # linkage of the households
-    for i in range(av_deg_by_household*community_size):
-        x1 = random.randint(0, len(graph.adj)-1)
-        x2 = random.randint(0, len(graph.adj)-1)
-
-        graph.adj[x1].append({"node": x2, "proba": community_link})
-        graph.adj[x2].append({"node": x1, "proba": community_link})
+    for i in range(av_deg_by_household*number_of_households):
+        [p1, p2] = np.random.choice(len(graph.adj), 2, replace=False)
+        graph.adj[p1].append({"node": p2, "proba": community_link})
+        graph.adj[p2].append({"node": p1, "proba": community_link})
 
     nbIndividuals = len(graph.adj)
 
@@ -358,16 +356,16 @@ def test_individual(individual, graph):
     individual.timeLeftForTestResult = daysUntilResult
 
     if individual.has_no_covid():
-        individual.lastTestResult = False # we assume that there are no false positives
+        individual.latestTestResult = False # we assume that there are no false positives
         return
 
     if individual.timeSinceInfection < testWindow[0] or individual.timeSinceInfection > testWindow[1]:
-        individual.lastTestResult = False # not in the detection window, the test fails
+        individual.latestTestResult = False # not in the detection window, the test fails
         return
 
     # otherwise the person is ill
     # the test result depends whether we have a false negative or not
-    individual.lastTestResult = not (random.random() < pFalseNegative)
+    individual.latestTestResult = not (random.random() < pFalseNegative)
 
 
 nbNotif = 0
@@ -474,10 +472,10 @@ def step(graph):
 
         # reception of test results | réception des résultats de test
         if individual.timeLeftForTestResult == 0:
-            if individual.in_quarantine() and individual.lastTestResult == False: # is in quarantine and gets a negative test
+            if individual.in_quarantine() and individual.latestTestResult == False: # is in quarantine and gets a negative test
                 individual.daysQuarantine = 0 # end of quarantine
 
-            if individual.lastTestResult == True:
+            if individual.latestTestResult == True:
                 individual.go_quarantine()
                 individual.timeLeftForTestResult = np.inf # people tested positive are not tested again
 
