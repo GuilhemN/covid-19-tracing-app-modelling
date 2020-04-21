@@ -8,7 +8,7 @@ from IPython import get_ipython
 nbIndividuals = 1000 # number of people in the graph | nombre d'individus dans le graphe
 initHealthy = 0.85 # proportion of healthy people at start | la proportion de personnes saines à l'intant initial
 initCured = 0.1 # proportion of cured people at start | proportion de personnes guéries à l'instant initial
-# ALL other people are presymptomatic at start | TOUTES les autres personnes sont asymptomatiques au départ
+# The other people are 60% presymptomatic and 40% asymptomatic at start | Les autres personnes sont 40% d'asymptomatiques et 60% de présymptomatiques au départ
 
 # graph generation for exponential degrees distribution
 #------------------------------------------------------
@@ -56,7 +56,7 @@ warningAfterSymptoms = False
 # |
 # à la reception d'une notif, l'utilisateur demande un test (avec une certaine proba)
 # si vrai, il attend les résultats en quarantaine, sinon il ne se met en quarantaine qu'aux résultats d'un test positif
-quarantineAfterNotification = True
+quarantineAfterNotification = False
 
 ###############
 # TEST PARAMS #
@@ -168,6 +168,11 @@ class Graph:
         self.nbInfectedByASPS = 0
         self.nbQuarantineI = 0
         self.nbQuarantineNonI = 0
+        
+        #to cumpute Rt
+        self.stepNb = 0
+        self.contaminations = []
+        self.infectedByTTimeInfected = []
 
 class Individual:
     """ Object holding the representation of an individual """
@@ -202,11 +207,13 @@ class Individual:
 # # Graph generation
 
 def create_individuals(graph):
+    graph.contaminations.append(0)
     for i in range(nbIndividuals):
         app = False
         if random.uniform(0,1) < utilApp:
             app = True
         s = PRESYMP
+        time_since_infection = -1
         incub = 0
         r = random.random()
         if r < initHealthy:
@@ -216,16 +223,24 @@ def create_individuals(graph):
             s = CURED
             graph.nbCured += 1
         else:
-            incub = round(np.random.lognormal(incubMeanlog, incubSdlog))
-            graph.nbPS += 1
+            graph.contaminations[0] +=1 #we start as if a proportion of the population just has been infected
+            time_since_infection = 0
+            if random.random() < pAsympt:
+                graph.nbAS+=1
+                s = ASYMP
+                
+            else:
+                s = PRESYMP
+                incub = round(np.random.lognormal(incubMeanlog, incubSdlog))
+                graph.nbPS += 1
 
         # state, quarantine, app, notif, incubation, timeSinceInfection, timeLeftForTestResult
-        graph.individuals.append(Individual(s,  0, app, False, incub, -1, -1))
+        graph.individuals.append(Individual(s,  0, app, False, incub, time_since_infection, -1))
 
 
 def init_graph_exp(graph):
     """ Graph initialisation based on exponential ditribution of degrees """
-
+    
     create_individuals(graph)
 
     # affecting degrees to vertices
@@ -310,6 +325,12 @@ def contamination(graph, i, j, closeContact):
             if (random.random() < pContamination and (not graph.individuals[i].in_state(ASYMP))) or \
                 (random.random() < pContaminationAsymp and graph.individuals[i].in_state(ASYMP)):
                 # j becomes infected
+                
+                #for Rt compuation
+                graph.contaminations[graph.stepNb] +=1
+                #print(len(graph.infectedByTTimeInfected), graph.stepNb - graph.individuals[i].timeSinceInfection)
+                graph.infectedByTTimeInfected[graph.stepNb - graph.individuals[i].timeSinceInfection] +=1
+                
                 if graph.individuals[i].in_state(ASYMP) or graph.individuals[i].in_state(PRESYMP):
                     graph.nbInfectedByASPS += 1
                 graph.individuals[j].timeSinceInfection = 0
@@ -407,6 +428,10 @@ def step(graph):
     for encounter in graph.encounters:
         encounter.append([]) # will contain every encounter of the day | contiendra les nouvelles rencontres du jour
 
+    graph.contaminations.append(0)
+    graph.infectedByTTimeInfected.append(0)
+    
+
     ## go through each possible encounter | on constate toutes les rencontres entre individus
     for i in range(nbIndividuals):
         make_encounters(graph, i)
@@ -496,7 +521,7 @@ def step(graph):
     ## deleting oldest recorded day | suppression du plus vieux jour de l'historique
     for encounter in graph.encounters:
         encounter.pop(0)
-
+    graph.stepNb +=1
 
 # # Display
 # Interactive model below (it takes about 10-15 sec to appear and to run a simulation)
@@ -506,6 +531,8 @@ def step(graph):
 import matplotlib.pyplot as plt
 
 fig, ((ax, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=[15,10])
+axRt = ax3.twinx()
+
 xs = []
 y_D = []
 y_MS = []
@@ -520,7 +547,7 @@ y_QuarantineI = []
 y_QuarantineNonITotal = []
 y_Test = []
 y_TestTotal = []
-y_R0 = []
+y_Rt = []
 
 ax.set_ylim([0, nbIndividuals])
 
@@ -532,12 +559,7 @@ def update_viz(graph):
         y_QuarantineNonITotal.append(graph.nbQuarantineNonI/nbIndividuals)
         y_TestTotal.append(graph.nbTest/nbIndividuals)
 
-    # calculate R0
-    R0 = 0
-    for individual in graph.individuals:
-        R0 += individual.nbInfected
-    # divide by the nb of people that were once infected
-    R0 /= (graph.nbPS + graph.nbAS + graph.nbS + graph.nbCured)
+
 
     xs.append(len(xs))                                                  # TODO: put all these comments at variable def (in Graph class)
     y_D.append(graph.nbDead/nbIndividuals*100)                          # number of deceased people
@@ -551,41 +573,63 @@ def update_viz(graph):
     y_QuarantineNonI.append(graph.nbQuarantineNonI/nbIndividuals*100)
     y_QuarantineI.append(graph.nbQuarantineI/nbIndividuals*100)
     y_Test.append(graph.nbTest)
-    y_R0.append(R0)
+    
 
 
-def draw_viz():
+def draw_viz(graph):
     ax.clear()
     ax2.clear()
     ax3.clear()
     ax4.clear()
+    axRt.clear()
+    
+    ax.set_xlabel("Days")
+    ax2.set_xlabel("Days")
+    ax3.set_xlabel("Days")
+    ax4.set_xlabel("Days")
+    
+    
+    for i in range(graph.stepNb):
+        if graph.contaminations[i] !=0 and graph.contaminations[i] > 5: #we just take into account days where there was more than 5 contaminations to avoid great fluctuation caused by randomness during days with less than 5 contaminations.
+            y_Rt.append(graph.infectedByTTimeInfected[i]/graph.contaminations[i])
+        else:
+            y_Rt.append(0)
+            
+    for i in range(1,graph.stepNb-1): #beacause of the great variability of Rt when there is little contamination, we smooth its values to get a more coherent evolution
+        if y_Rt[i] == 0:
+            y_Rt[i] = (y_Rt[i-1] + y_Rt[i+1])/2
+    
 
     labels = [ "Symptomatic", "Deceased", "Asymptomatic","Presymptomatic", "Cured", "Healthy"]
     ax.stackplot(xs, y_MS, y_D, y_MAS,y_MPS, y_G, y_S, labels=labels, edgecolor="black", colors=["red", "darkred", "orange","yellow", "dodgerblue", "mediumseagreen"])
+    ax.set_ylabel("Proportion of the population")
 
     labels2 = ["In quarantine and non infected (percentage)", "In quarantine and infected (percentage)"]
     ax2.stackplot(xs, y_QuarantineNonI, y_QuarantineI, labels=labels2)
-
+    ax2.set_ylabel("Proportion of the population")
     #line, = ax3.plot(xs, y_InfectByASPS)
     #line.set_label("Total infections by asympt.")
 
+    ax3.set_ylabel("Quarantine days / Tests")
     line, = ax3.plot(xs, y_Q)
     line.set_label("Cumulative quarantine days per person")
     line, = ax3.plot(xs, y_QuarantineNonITotal)
     line.set_label("Cumulative quarantine days of healthy people per person")
     line, = ax3.plot(xs, y_TestTotal)
     line.set_label("Cumulative number of tests per person")
-    line, = ax3.plot(xs, y_R0)
-    line.set_label("R0 (average number of infections caused by one infected)")
+    axRt.set_ylabel("Rt", color = 'red')
+    line, = axRt.plot(xs, y_Rt, color = 'red')
+    line.set_label("Rt (average number of infections caused by one infected)")
 
     line, = ax4.plot(xs, y_Test)
     line.set_label("Number of tests")
-
+    ax4.set_ylabel("Tests")
 
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=3)
     ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=1)
     #ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=1)
     ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=2)
+    #axRt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=1) #to avoid legend on top of the other
     ax4.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=True, ncol=2)
     plt.tight_layout()
 
@@ -596,7 +640,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     global pReadNotif
     global quarantineAfterNotification
     global warningAfterSymptoms
-    global xs, y_D, y_MS, y_MPS, y_MAS, y_S, y_G, y_Q, y_InfectByASPS, y_R0
+    global xs, y_D, y_MS, y_MPS, y_MAS, y_S, y_G, y_Q, y_InfectByASPS, y_Rt
     global y_QuarantineNonI, y_QuarantineNonITotal, y_QuarantineI, y_Test, y_TestTotal
 
     # TODO: clarify/simplify ?
@@ -627,7 +671,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     y_QuarantineI.clear()
     y_Test.clear()
     y_TestTotal.clear()
-    y_R0.clear()
+    y_Rt.clear()
 
     maxSymp = 0
     for step_ind in range(nbSteps):
@@ -643,7 +687,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
     # print("Test per people:", y_TestTotal[-1])
     # print("Final healthy:", y_S[-1])
     print(maxSymp/nbIndividuals,",", y_S[-1],",", y_Q[-1], ",", y_TestTotal[-1])
-    draw_viz()
+    draw_viz(graph)
     plt.show()
 
 
