@@ -2,19 +2,22 @@
 
 # Limits
 
-We don't take into account the eventual false postive of nasal test. We consider here that there is none.
+ * We don't take into account the eventual false postive of nasal test. We consider here that there is none.
 
-The variability of infectioussness seems to be really high: an infected that will develop symptoms is really contagious during the 4 days before the symptoms 
-and less for the 4 days after the symptoms.
+ * The variability of infectioussness seems to be really high: an infected that will develop symptoms is really contagious during the 4 days before the symptoms and less for the 4 days after the symptoms according to [6].
 
-The geographical heterogeneity of a nationnal territory is not taken into account, this is a simulation just for one isolated community
+ * The geographical heterogeneity of a nationnal territory is not taken into account, this is a simulation just for one isolated community
 
-In the initial state a proportion of the population is contaminated at the same time. In reallity, after the end of the lockdown the person infected will have been
-infected at different instant, smoothing the pressure on healthcare systems.
+ * In the initial state a proportion of the population is contaminated at the same time. In reallity, after the end of the lockdown the person infected will have been infected at different instant, smoothing the pressure on healthcare systems.
 
-Note: the evolution of Rt seems really chaotic after the 10 first days. This is due to the fact that after the 10 first days, there is not to much contamination that
-take place. It means that the computation of the average of the number of contamination caused by an infected at time t will be done on little cases.
-This causes great random fluctuation to interpret carefully.
+ * Note: the evolution of Rt seems really chaotic after the 10 first days. This is due to the fact that after the 10 first days, there is not to much contamination that
+take place. It means that the computation of the average of the number of contamination caused by an infected at time t will be done on little cases. This causes great random fluctuation to interpret carefully.
+
+## Baseline case: without any app
+<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/0%25%2C-%2C-%2C[3%2C10]%2C5j%2C0.3.png" alt="current test in France" style="width: 500px;"/>
+We see that the outbreak spread freely from the 5% initial infected until it contaminate almost all the population.
+The initial Rt (R0) is a bit lower than 2 because the initial population has cured individual (10%) and because people who notice symptoms directly quarantine themselves.
+This was not the case during the begining of the outbreak when R0 was evaluated around 2.
 
 ## Influence of the time for tests results
 
@@ -42,13 +45,13 @@ succeed in having perfect test results available with no delay, because of the 3
 identify isolated presymptomatic cases that just got infected. Example of curve comparison with and without the window validity :
 
 * with the window validity:
-  <img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%,-,-,[3,10],0j,0.01.png" alt="with window validity" style="width: 500px;"/>
+  <img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%25%2C-%2C-%2C[3%2C10]%2C0j%2C0.01.png" alt="with window validity" style="width: 500px;"/>
 * without it:
-  <img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%,-,-,[-1,100],0j,0.01.png" alt="without window validity" style="width: 500px;"/>
+  <img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%25%2C-%2C-%2C[-1%2C100]%2C0j%2C0.01.png" alt="without window validity" style="width: 500px;"/>
 
 With the validity window, we can only identify infected 3 day after the infection, that's already a significant part of the incubation period.
 
-<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%,-,-,[3,10],2j,0.15.png" alt="with better tests" style="width: 500px;"/>
+<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%25%2C-%2C-%2C[3%2C10]%2C2j%2C0.15.png" alt="with better tests" style="width: 500px;"/>
 
 Even with better screening (2 days of delay and 15% of false negative), we can see that the curve of the test requests appears earlier, but the
 quarantine curve doesn't change much. This can explained by the fact that a close contact has a probability of only about 2% of chance of causing a
@@ -61,14 +64,14 @@ at the time of the contact etc. This could enable a more precise tracking of the
 
 ## Quarantine after notification:
 
-<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%,N,-,[3,10],5j,0.3.png" alt="quarantine after notification with current tests" style="width: 500px;"/>
+<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%25%2CN%2C-%2C[3%2C10]%2C5j%2C0.3.png" alt="quarantine after notification with current tests" style="width: 500px;"/>
 
 It provides a more aggressive response against the epidemic and prove to be effective even with the current test abilities. 
 However a great part of it effectiveness is likely to be cause by the imposed quarantine of 80% of the population.
 We can aslo see oscillation in the number of person in quarantine: when the pandemic first spread, a great part of the population 
 quarantine themselves according to the notification they recived. After testing, a lot of them end the quarantine, causing the epidemic to spread again.
 
-<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%,N,-,[3,10],2j,0.15.png" alt="quarantine after notification with better tests" style="width: 500px;"/>
+<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%25%2CN%2C-%2C[3%2C10]%2C2j%2C0.15.png" alt="quarantine after notification with better tests" style="width: 500px;"/>
 
 The effectiveness of this policy is even greater with better tests without causing more quarantine days because here quarantine arrive before the 
 great part of the incubation period. 
@@ -83,7 +86,7 @@ Nonetheless if test results can be available quickly, both the effectiveness of 
 
 ## Warning after symptoms
 
-<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%,N,W,[3,10],2j,0.15.png" alt="warning after symptoms with better tests" style="width: 500px;"/>
+<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%25%2CN%2CW%2C[3%2C10]%2C2j%2C0.15.png" alt="warning after symptoms with better tests" style="width: 500px;"/>
 
 The proportion of notifications sent because of symptoms unrelated to COVID is difficult to estimate.
 However if we manage to keep it fairly low ( < 0.5% of chance of no covid symptoms per person per day)
