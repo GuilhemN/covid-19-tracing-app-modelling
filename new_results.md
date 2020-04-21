@@ -1,5 +1,15 @@
 # Results of the model
 
+# Limits
+
+We don't take into account the eventual false postive of nasal test. We consider here that there is none.
+
+The variability of infectioussness seems to be really high: an infected that will develop symptoms is really contagious during the 4 days befor the symptoms 
+and less for the 4 days after the symptoms.
+
+The geographical heterogeneity of a nationnal territory is not taken into account, this is a simulation just for one isolated community
+
+
 ## Influence of the time for tests results
 
 We use test parameters to model the current test abilities in France :
