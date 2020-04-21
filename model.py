@@ -13,11 +13,11 @@ initCured = 0.1 # proportion of cured people at start | proportion de personnes 
 # graph generation for exponential degrees distribution
 #------------------------------------------------------
 deg_avg = 100 # average number of connexions per person | le nombre moyen de connexions par personne
-av_household_size = 6 # avergave size of household | la taille moyenne d'un foyer
+av_household_size = 6 # average size of household | la taille moyenne d'un foyer
 household_proba = 1 # probability of meeting a person of the same household | la probabilité de contact par jour entre membres d'un même foyer
 extern_contact_proba = 0.3 # probabilty of meeting a person of a different household | la probabilité de contact par jour entre personne de foyers différents
 
-# average contacts per day = 0.3*(100-6) + 6 = 34.2
+# average contacts per day = 0.3*(100-6) + 1*6 = 34.2
 
 # graph generation with organization in households
 #-------------------------------------------------
@@ -202,7 +202,7 @@ class Individual:
 
     def go_quarantine(self):
         if self.daysQuarantine <= 0:
-            self.daysQuarantine = daysQuarantine # goes into quarantine if isn't already
+            self.daysQuarantine = daysQuarantine # goes into quarantine if isn't already # Should carify use of global here
 
 # # Graph generation
 
@@ -256,6 +256,7 @@ def init_graph_exp(graph):
         # creating an edge
         [p1, p2] = np.random.choice(len(degrees), 2, replace=False, p=degrees/S)
         if degrees[p1] <= av_household_size or degrees[p2] <= av_household_size:
+            # Hence the last vertices added for individual p1 and p2 are its household vertices
             graph.adj[p1].append({"node" : p2, "proba" : household_proba})
             graph.adj[p2].append({"node" : p1, "proba" : household_proba})
         else:
@@ -294,7 +295,7 @@ def init_graph_household(graph):
 
     create_individuals(graph)
 
-    graph.encounters = [[[] for jour in range(daysNotif)] for individual in range(nbIndividuals)]
+    graph.encounters = [[[] for day in range(daysNotif)] for individual in range(nbIndividuals)]
 
 # # Updating the graph
 
@@ -323,9 +324,9 @@ def contamination(graph, i, j, closeContact):
                 (random.random() < pContaminationAsymp and graph.individuals[i].in_state(ASYMP)):
                 # j becomes infected
                 
-                # for Rt compuation
+                # for Rt computation
                 graph.contaminations[graph.stepNb] += 1
-                graph.infectedByTTimeInfected[graph.stepNb - graph.individuals[i].timeSinceInfection] += 1
+                graph.infectedByTTimeInfected[graph.stepNb - graph.individuals[i].timeSinceInfection] += 1 ###J ?
                 
                 if graph.individuals[i].in_state(ASYMP) or graph.individuals[i].in_state(PRESYMP):
                     graph.nbInfectedByASPS += 1
@@ -368,6 +369,7 @@ def test_individual(individual, graph):
     individual.latestTestResult = not (random.random() < pFalseNegative)
 
 
+###J Why use globals here and not attach nbNotif to graph ?
 nbNotif = 0
 nbPersNotif = 0
 def send_notification(graph, i):
@@ -379,7 +381,7 @@ def send_notification(graph, i):
     if graph.individuals[i].sentNotification:
         return # notifications already sent
 
-    nbNotif += 1
+    nbNotif += 1 ###J why increase this metric outside the loop below ? This seems strange since i could be part of the no-app group
 
     graph.individuals[i].sentNotification = True
     for daysEncounter in graph.encounters[i]:
@@ -390,7 +392,7 @@ def send_notification(graph, i):
                 test_individual(graph.individuals[contact], graph) # asks for a test
                 if quarantineAfterNotification: # in this case, the person waits for test results in quarantine
                     graph.individuals[contact].go_quarantine()
-                nbPersNotif += 1
+                nbPersNotif += 1 ###J This should be before the pReadNotif condition
 
 def make_encounters(graph, i):
     """ Assess all encounters made by i in one day | Détermine toutes les rencontres faites par i en un jour """
@@ -410,7 +412,7 @@ def make_encounters(graph, i):
         if random.random() < edge['proba'] / factor:
             if random.random() < pCloseContact: # if this is a close contact
                 # if i and j have the app, we save their encounter | si i et j ont l'appli, on note la rencontre
-                if graph.individuals[i].app and graph.individuals[j].app and random.random() < pDetection:
+                if graph.individuals[i].app and graph.individuals[j].app and random.random() < pDetection: ###J Symmetric detection, but ok
                     graph.encounters[i][-1].append(j)
                     graph.encounters[j][-1].append(i)
                 contamination(graph, i, j, True)
@@ -452,6 +454,7 @@ def step(graph):
                 if random.random() < pQSymptoms: # go into quarantine if symptoms appear | mise en confinement à la détection des symptômes
                     individual.go_quarantine()
 
+                ###J So individuals are always tested as soon as they develop symptoms ?
                 test_individual(individual, graph)
 
         elif individual.in_state(SYMP):
@@ -667,6 +670,7 @@ def update_prob(app_use_rate, report_to_app, read_notif, warning_after_symptoms,
         update_viz(graph)
         # update simulation
         step(graph)
+        print(f'Progress : {(100*step_ind/nbSteps):.1f} %')
         maxSymp = max(maxSymp, graph.nbS)
 
     # print("Total individuals:", nbIndividuals)
