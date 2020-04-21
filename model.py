@@ -572,7 +572,7 @@ def draw_viz(graph):
     
     # computing Rt | calcul de Rt
     for i in range(graph.stepNb):
-        if graph.contaminations[i] !=0 and graph.contaminations[i] > 5: # we just take into account days where there were more than 5 contaminations to reduce random fluctuations
+        if graph.contaminations[i] != 0 and graph.contaminations[i] > 5: # we just take into account days where there were more than 5 contaminations to reduce random fluctuations
             y_Rt.append(graph.numInfectedByNewInfected[i]/graph.contaminations[i])
         else:
             y_Rt.append(0)
