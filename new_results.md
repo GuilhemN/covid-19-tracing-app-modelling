@@ -24,7 +24,7 @@ We use test parameters to model the current test abilities in France :
  * 30% of false positive
 
 Even with a great adhesion of the population (80%) the change in the epidemic spread isn't even visible because of the test delay.
-<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%,-,-,[3,10],5j,0.3.png" alt="current test in France" style="width: 500px;"/>
+<img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/80%%2C-%2C-%2C[3%2C10]%2C5j%2C0.3.png" alt="current test in France" style="width: 500px;"/>
 
 In fact the crucial time length to keep in mind to curb the spread of the desease is the 5 days incubation period.
 According to the last satistics, it seems that assymptomatics are about 40% of the infected, yet they cause only 6% of the infection. [4]
