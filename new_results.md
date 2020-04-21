@@ -17,7 +17,7 @@ take place. It means that the computation of the average of the number of contam
 <img src="https://raw.githubusercontent.com/GuilhemN/covid-19-tracing-app-modelling/master/images/0%25%2C-%2C-%2C[3%2C10]%2C5j%2C0.3.png" alt="current test in France" style="width: 500px;"/>
 
 We see that the outbreak spread freely from the 5% initial infected until it contaminate almost all the population.
-The initial Rt (R0) is a bit lower than 2 because the initial population has cured individual (10%) and because people who notice symptoms directly quarantine themselves.
+The initial Rt -R0- (red curve) is a bit lower than 2 because the initial population has cured individual (10%) and because people who notice symptoms directly quarantine themselves.
 This was not the case during the begining of the outbreak when R0 was evaluated around 2.
 
 This graph is the reference of the future analysis.
