@@ -313,10 +313,6 @@ def contamination(graph, i, j, closeContact):
     if graph.individuals[i].is_infected():
         if graph.individuals[j].in_state(HEALTHY):
 
-            #adding 2 days with no contaminations
-
-
-
             if closeContact:
                 pContamination = pContaminationCloseContact
                 pContaminationAsymp = pContaminationCloseContactAsymp
@@ -327,7 +323,6 @@ def contamination(graph, i, j, closeContact):
             if (random.random() < pContamination and (not graph.individuals[i].in_state(ASYMP))) or \
                 (random.random() < pContaminationAsymp and graph.individuals[i].in_state(ASYMP)):
                 # j becomes infected
-
 
                 # for Rt computation
                 graph.contaminations[graph.stepNb] += 1
@@ -423,10 +418,7 @@ def step(graph):
         encounter.append([]) # will contain every encounter of the day | contiendra les nouvelles rencontres du jour
 
     graph.contaminations.append(0)
-
     graph.numInfectedByNewInfected.append(0)
-
-
 
     ## go through each possible encounter | on constate toutes les rencontres entre individus
     for i in range(nbIndividuals):
