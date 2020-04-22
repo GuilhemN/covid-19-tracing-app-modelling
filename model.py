@@ -24,7 +24,7 @@ extern_contact_proba = 0.3 # probabilty of meeting a person of a different house
 household_size = (3, 5) # min and max size of an household (uniform distribution) | extremums de la taille d'un foyer
 household_link = 1 # probability of contact between members of a household | proba de contact entre membres d'un foyer
 
-number_of_households = 1000 # 2500 is good but a bit slow | number of households in the community | nombre de foyers dans une communauté
+number_of_households = 300 # 2500 is good but a bit slow | number of households in the community | nombre de foyers dans une communauté
 community_link = 0.3 # probability of contact across households | proba de contact entre foyers
 av_deg_by_household = 400 # number of link from a household | nombre moyen de liens depuis un foyer
 
@@ -35,7 +35,7 @@ av_deg_by_household = 400 # number of link from a household | nombre moyen de li
 # APP PARAMS #
 ##############
 
-daysNotif = 14 # number of days the app checks back for contact notification | nombre de jours vérifiés par l'appli pour notifier un contact
+daysNotif = 0 # number of days the app checks back for contact notification | nombre de jours vérifiés par l'appli pour notifier un contact
 utilApp = 0.8 # percentage of people having the app | la proportion d'utilisateurs de l'application dans la population générale
 
 pDetection = 0.9 # prob. that the app detects a contact | proba que l'appli détecte un contact
@@ -56,7 +56,7 @@ warningAfterSymptoms = False
 # |
 # à la reception d'une notif, l'utilisateur demande un test (avec une certaine proba)
 # si vrai, il attend les résultats en quarantaine, sinon il ne se met en quarantaine qu'aux résultats d'un test positif
-quarantineAfterNotification = False
+quarantineAfterNotification = True
 
 ###############
 # TEST PARAMS #
@@ -168,7 +168,7 @@ class Graph:
         # cumulative counters :
         self.nbQuarantineTotal = 0 # number of people in quarantine
         self.nbInfectedByASPS = 0 # number of people infected by asymp. + presymp. people
-        
+
         #to compute Rt
         self.stepNb = 0
         self.contaminations = [] # number of people contaminated at a given time
@@ -239,7 +239,7 @@ def create_individuals(graph):
 
 def init_graph_exp(graph):
     """ Graph initialisation based on exponential ditribution of degrees """
-    
+
     create_individuals(graph)
 
     # affecting degrees to vertices
@@ -312,6 +312,10 @@ def contamination(graph, i, j, closeContact):
     if graph.individuals[i].is_infected():
         if graph.individuals[j].in_state(HEALTHY):
 
+            #adding 2 days with no contaminations
+
+
+
             if closeContact:
                 pContamination = pContaminationCloseContact
                 pContaminationAsymp = pContaminationCloseContactAsymp
@@ -322,11 +326,11 @@ def contamination(graph, i, j, closeContact):
             if (random.random() < pContamination and (not graph.individuals[i].in_state(ASYMP))) or \
                 (random.random() < pContaminationAsymp and graph.individuals[i].in_state(ASYMP)):
                 # j becomes infected
-                
+
                 # for Rt compuation
                 graph.contaminations[graph.stepNb] += 1
                 graph.infectedByTTimeInfected[graph.stepNb - graph.individuals[i].timeSinceInfection] += 1
-                
+
                 if graph.individuals[i].in_state(ASYMP) or graph.individuals[i].in_state(PRESYMP):
                     graph.nbInfectedByASPS += 1
                 graph.individuals[j].timeSinceInfection = 0
@@ -426,7 +430,7 @@ def step(graph):
 
     graph.contaminations.append(0)
     graph.infectedByTTimeInfected.append(0)
-    
+
 
     ## go through each possible encounter | on constate toutes les rencontres entre individus
     for i in range(nbIndividuals):
@@ -571,12 +575,12 @@ def draw_viz(graph):
     ax3.clear()
     ax4.clear()
     axRt.clear()
-    
+
     ax.set_xlabel("Days")
     ax2.set_xlabel("Days")
     ax3.set_xlabel("Days")
     ax4.set_xlabel("Days")
-    
+
     # computing Rt | calcul de Rt
     for i in range(graph.stepNb):
         if graph.contaminations[i] !=0 and graph.contaminations[i] > 5: # we just take into account days where there were more than 5 contaminations to reduce random fluctuations
@@ -586,7 +590,7 @@ def draw_viz(graph):
     for i in range(1, graph.stepNb-1): # smoothing Rt curve
         if y_Rt[i] == 0:
             y_Rt[i] = (y_Rt[i-1] + y_Rt[i+1])/2
-    
+
 
     labels = [ "Symptomatic", "Deceased", "Asymptomatic","Presymptomatic", "Cured", "Healthy"]
     ax.stackplot(xs, y_MS, y_D, y_MAS,y_MPS, y_G, y_S, labels=labels, edgecolor="black", colors=["red", "darkred", "orange","yellow", "dodgerblue", "mediumseagreen"])
